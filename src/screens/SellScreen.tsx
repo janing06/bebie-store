@@ -21,12 +21,14 @@ import { Link } from 'wouter'
 import { STORE_NAME } from '../brand'
 import { useCart } from '../cart-context'
 import { loadFavoriteOrder, moveId, orderFavorites, saveFavoriteOrder } from '../data/favorites'
+import { loadAllProductsSort, saveAllProductsSort } from '../data/preferences'
 import { isLowStock, matchesSearch } from '../data/products'
 import { salesBetween } from '../data/sales'
 import { db, type Product } from '../db'
 import { addToCart, cartTotal } from '../domain/cart'
-import { rangeFor } from '../domain/dates'
+import { addDays, rangeFor } from '../domain/dates'
 import { greeting } from '../domain/messages'
+import { soldQuantities, sortProducts, type SortMode } from '../domain/product-sort'
 import { summarize } from '../domain/reports'
 import { formatPesos, pluralize } from '../money'
 import { Screen, SearchInput } from '../ui'
@@ -36,6 +38,11 @@ import { QuickAddSheet } from './QuickAddSheet'
 
 const TILE =
   'flex min-h-20 select-none flex-col items-center justify-center rounded-xl border border-slate-200 bg-slate-50 p-2 text-center'
+
+const SORT_OPTIONS: [SortMode, string][] = [
+  ['az', 'A–Z'],
+  ['best', 'Best sellers'],
+]
 
 function ProductLabel({ product }: { product: Product }) {
   return (
@@ -74,8 +81,14 @@ export function SellScreen() {
     const { start, end } = rangeFor('today', new Date())
     return salesBetween(db, start, end)
   }, [])
+  const sortMode = useLiveQuery(() => loadAllProductsSort(db), []) ?? 'az'
   const { cart, setCart } = useCart()
   const [now] = useState(() => new Date())
+  const recent = useLiveQuery(() => {
+    if (sortMode !== 'best') return undefined
+    const { start, end } = rangeFor('today', now)
+    return salesBetween(db, addDays(start, -29), end)
+  }, [sortMode, now])
   const [search, setSearch] = useState('')
   const [picking, setPicking] = useState<Product | null>(null)
   const [quickAdd, setQuickAdd] = useState(false)
@@ -92,7 +105,12 @@ export function SellScreen() {
   const shown = searching
     ? active.filter((product) => matchesSearch(product.name, search))
     : favorites
-  const others = active.filter((product) => !product.favorite)
+  const sold = recent ? soldQuantities(recent.sales, recent.items) : new Map<string, number>()
+  const others = sortProducts(
+    active.filter((product) => !product.favorite),
+    sortMode,
+    sold,
+  )
   const canArrange = !searching && favorites.length >= 2
   const todayTotal = today ? summarize(today.sales, today.items).salesTotal : 0
 
@@ -209,7 +227,21 @@ export function SellScreen() {
       )}
       {!searching && !arranging && others.length > 0 && (
         <>
-          <p className="mt-6 text-xs font-semibold tracking-wide text-slate-500">ALL PRODUCTS</p>
+          <div className="mt-6 flex min-h-11 items-center justify-between">
+            <p className="text-xs font-semibold tracking-wide text-slate-500">ALL PRODUCTS</p>
+            <div className="flex gap-2">
+              {SORT_OPTIONS.map(([mode, label]) => (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => void saveAllProductsSort(db, mode)}
+                  className={sortMode === mode ? btn.chipOn : btn.chip}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
           <div className="flex flex-col gap-2">
             {others.map((product) => (
               <button
@@ -225,6 +257,9 @@ export function SellScreen() {
                   >
                     Stock: {product.packSize ? pluralize(product.stock, 'pc') : product.stock}
                     {product.packSize ? ` · Pack of ${product.packSize}` : ''}
+                    {sortMode === 'best' && sold.get(product.id)
+                      ? ` · ${sold.get(product.id)} sold (30 days)`
+                      : ''}
                   </span>
                 </span>
                 <span className="text-lg font-semibold text-brand">

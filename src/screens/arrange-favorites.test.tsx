@@ -6,7 +6,9 @@ import { Router } from 'wouter'
 import { memoryLocation } from 'wouter/memory-location'
 import { AppRoutes } from '../App'
 import { saveFavoriteOrder } from '../data/favorites'
+import { loadAllProductsSort } from '../data/preferences'
 import { addProduct } from '../data/products'
+import { checkout } from '../data/sales'
 import { db } from '../db'
 import { sampleProduct } from '../test/helpers'
 
@@ -136,4 +138,60 @@ test('hides ALL PRODUCTS while arranging', async () => {
   await user.click(await screen.findByRole('button', { name: 'Arrange' }))
 
   expect(screen.queryByText('ALL PRODUCTS')).not.toBeInTheDocument()
+})
+
+async function sellOne(productId: string, name: string, qty: number) {
+  await checkout(db, {
+    cart: [{ productId, name, price: 7500, cost: 6200, qty }],
+    payment: 'cash',
+    cashReceived: 100000,
+  })
+}
+
+async function seedSortable() {
+  await addProduct(db, sampleProduct({ name: 'Apple' }))
+  const zebra = await addProduct(db, sampleProduct({ name: 'Zebra' }))
+  await sellOne(zebra.id, 'Zebra', 12)
+}
+
+function rowNames() {
+  return screen
+    .getAllByRole('button', { name: /Stock:/ })
+    .map((row) => row.textContent?.replace(/Stock:.*/, ''))
+}
+
+test('ALL PRODUCTS defaults to A-Z without sold counts', async () => {
+  await seedSortable()
+  renderApp()
+
+  await screen.findByRole('button', { name: /Zebra/ })
+  expect(rowNames()).toEqual(['Apple', 'Zebra'])
+  expect(screen.getByRole('button', { name: 'A–Z' })).toHaveClass('bg-brand')
+  expect(screen.queryByText(/sold \(30 days\)/)).not.toBeInTheDocument()
+})
+
+test('Best sellers moves top sellers first and shows sold count', async () => {
+  await seedSortable()
+  const user = userEvent.setup()
+  renderApp()
+
+  await user.click(await screen.findByRole('button', { name: 'Best sellers' }))
+
+  await waitFor(() => expect(rowNames()).toEqual(['Zebra', 'Apple']))
+  expect(screen.getByText(/12 sold \(30 days\)/)).toBeInTheDocument()
+})
+
+test('the sort choice is saved and restored', async () => {
+  await seedSortable()
+  const user = userEvent.setup()
+  renderApp()
+  await user.click(await screen.findByRole('button', { name: 'Best sellers' }))
+  await waitFor(() => expect(rowNames()).toEqual(['Zebra', 'Apple']))
+  expect(await loadAllProductsSort(db)).toBe('best')
+
+  cleanup()
+  renderApp()
+
+  await screen.findByRole('button', { name: /Zebra/ })
+  await waitFor(() => expect(rowNames()).toEqual(['Zebra', 'Apple']))
 })
