@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { Route, Switch } from 'wouter'
 import { CartProvider } from './CartProvider'
 import { CheckoutScreen } from './screens/CheckoutScreen'
+import { ProductFormScreen } from './screens/ProductFormScreen'
+import { ProductsScreen } from './screens/ProductsScreen'
 import { SaleSavedScreen } from './screens/SaleSavedScreen'
 import { SellScreen } from './screens/SellScreen'
 import { Splash } from './Splash'
@@ -16,6 +18,9 @@ export function AppRoutes() {
         <Route path="/" component={SellScreen} />
         <Route path="/checkout" component={CheckoutScreen} />
         <Route path="/sold/:id" component={SaleSavedScreen} />
+        <Route path="/products" component={ProductsScreen} />
+        <Route path="/products/new" component={ProductFormScreen} />
+        <Route path="/products/:id" component={ProductFormScreen} />
         <Route>
           <Screen title="Not found" back>
             <p className="text-slate-600">This page does not exist.</p>
