@@ -17,12 +17,13 @@ export function QuickAddSheet({
 }) {
   const [name, setName] = useState(initialName)
   const [price, setPrice] = useState('')
+  const [cost, setCost] = useState('')
   const [errors, setErrors] = useState<FieldErrors>({})
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
 
   async function save() {
-    const result = parseProductForm({ ...EMPTY_PRODUCT_FORM, name, price })
+    const result = parseProductForm({ ...EMPTY_PRODUCT_FORM, name, price, cost })
     if (!result.ok) {
       setErrors(result.errors)
       return
@@ -49,6 +50,14 @@ export function QuickAddSheet({
           value={price}
           inputMode="decimal"
           onChange={(e) => setPrice(e.target.value)}
+          className={inputClass()}
+        />
+      </Field>
+      <Field label="Cost ₱ *" error={errors.cost} help={FIELD_HELP.cost}>
+        <input
+          value={cost}
+          inputMode="decimal"
+          onChange={(e) => setCost(e.target.value)}
           className={inputClass()}
         />
       </Field>

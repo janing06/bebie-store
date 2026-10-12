@@ -46,7 +46,7 @@ export function ImportScreen() {
     <Screen title="Import products" back>
       <p className="text-sm text-slate-700">
         Make a spreadsheet in Google Sheets or Excel with these columns, then download it as CSV.
-        Only <b>name</b> and <b>price</b> are required. Prices are in pesos.
+        <b>name</b>, <b>price</b> and <b>cost</b> are required. Prices are in pesos.
       </p>
       <pre className="overflow-x-auto rounded-xl bg-slate-100 p-3 text-xs">{EXAMPLE}</pre>
       <label className={`${btn.primary} block`}>

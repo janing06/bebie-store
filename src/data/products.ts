@@ -6,7 +6,7 @@ import { moveStock } from './stock'
 export interface ProductInput {
   name: string
   price: Centavos
-  cost: Centavos | null
+  cost: Centavos
   lowStockAt: number | null
   packSize: number | null
   favorite: boolean
@@ -46,8 +46,10 @@ export function parseProductForm(form: ProductForm): ParsedProductForm {
   if (name === '') errors.name = 'Name is required'
   const price = parsePesos(form.price)
   if (price === null) errors.price = 'Enter a price like 12 or 12.50'
-  const cost = parseOptional(form.cost, parsePesos)
-  if (cost === undefined) errors.cost = 'Enter a cost like 10 or 10.50'
+  const cost = parsePesos(form.cost)
+  if (cost === null) {
+    errors.cost = form.cost.trim() === '' ? 'Cost is required' : 'Enter a cost like 10 or 10.50'
+  }
   const startingStock = parseOptional(form.startingStock, parseCount)
   if (startingStock === undefined) errors.startingStock = 'Enter a whole number'
   const lowStockAt = parseOptional(form.lowStockAt, parseCount)
@@ -60,7 +62,7 @@ export function parseProductForm(form: ProductForm): ParsedProductForm {
   if (
     Object.keys(errors).length > 0 ||
     price === null ||
-    cost === undefined ||
+    cost === null ||
     startingStock === undefined ||
     lowStockAt === undefined ||
     packSize === undefined
@@ -91,7 +93,7 @@ function assertValidProduct(input: ProductInput): void {
   const errors: FieldErrors = {}
   if (input.name.trim() === '') errors.name = 'Name is required'
   if (!isWholeNumber(input.price)) errors.price = 'Price must be zero or more'
-  if (input.cost !== null && !isWholeNumber(input.cost)) errors.cost = 'Cost must be zero or more'
+  if (!isWholeNumber(input.cost)) errors.cost = 'Cost must be zero or more'
   if (input.lowStockAt !== null && !isWholeNumber(input.lowStockAt)) {
     errors.lowStockAt = 'Low stock level must be a whole number'
   }

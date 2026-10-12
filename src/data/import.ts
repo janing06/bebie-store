@@ -8,7 +8,7 @@ export interface ImportPreview {
   duplicates: { line: number; name: string }[]
 }
 
-const REQUIRED_COLUMNS = ['name', 'price']
+const REQUIRED_COLUMNS = ['name', 'price', 'cost']
 const KNOWN_COLUMNS: Record<string, string> = {
   name: 'name',
   price: 'price',

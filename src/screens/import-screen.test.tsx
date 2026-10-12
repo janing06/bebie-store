@@ -19,7 +19,7 @@ test('previews a CSV and imports its products', async () => {
       <AppRoutes />
     </Router>,
   )
-  const csv = new File(['name,price\nCoke 1.5L,75\nSprite 1L,60'], 'products.csv', {
+  const csv = new File(['name,price,cost\nCoke 1.5L,75,62\nSprite 1L,60,50'], 'products.csv', {
     type: 'text/csv',
   })
 
