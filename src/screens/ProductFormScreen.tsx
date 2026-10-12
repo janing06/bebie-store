@@ -168,7 +168,7 @@ function ProductEditor({ product, products }: { product?: Product; products: Pro
           />
         </Field>
         <Field
-          label="Cost ₱"
+          label="Cost ₱ *"
           error={errors.cost}
           help={FIELD_HELP.cost}
           hint={

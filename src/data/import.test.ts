@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { describe, expect, test } from 'vitest'
 import { expectStockMatchesMoves, freshDb } from '../test/helpers'
 import { importProducts, previewProductsCsv } from './import'
@@ -5,13 +6,13 @@ import { importProducts, previewProductsCsv } from './import'
 const CSV = `name,price,cost,stock,lowStockAt,packSize,favorite
 Coke 1.5L,75,62,14,4,,yes
 Marlboro Red,9,8.25,46,20,20,Yes
-Ice,5,,,,,
+Ice,5,3,,,,
 `
 
 describe('previewProductsCsv', () => {
   test('accepts friendly header spellings', () => {
     const preview = previewProductsCsv(
-      'Name,Price,Stock,Pack size,Low stock at,Favorite\nMami,9,5,20,2,yes',
+      'Name,Price,Cost,Stock,Pack size,Low stock at,Favorite\nMami,9,8,5,20,2,yes',
       [],
     )
     expect(preview.errors).toEqual([])
@@ -24,13 +25,13 @@ describe('previewProductsCsv', () => {
   })
 
   test('shows an error for an unknown column but still imports the rows', () => {
-    const preview = previewProductsCsv('name,price,Colour\nMami,9,red', [])
+    const preview = previewProductsCsv('name,price,cost,Colour\nMami,9,8,red', [])
     expect(preview.errors).toEqual([{ line: 1, message: 'Unknown column: Colour' }])
     expect(preview.rows).toHaveLength(1)
   })
 
   test('shows Papa Parse errors such as a broken quote', () => {
-    const preview = previewProductsCsv('name,price\n"Mami,9\nIce,5', [])
+    const preview = previewProductsCsv('name,price,cost\n"Mami,9,8\nIce,5,3', [])
     expect(preview.errors.length).toBeGreaterThan(0)
   })
 
@@ -59,7 +60,7 @@ describe('previewProductsCsv', () => {
       {
         name: 'Ice',
         price: 500,
-        cost: null,
+        cost: 300,
         startingStock: 0,
         lowStockAt: null,
         packSize: null,
@@ -68,9 +69,28 @@ describe('previewProductsCsv', () => {
     ])
   })
 
-  test('only name and price columns are required', () => {
-    const preview = previewProductsCsv('name,price\nEgg,9\n', [])
+  test('only name, price and cost columns are required', () => {
+    const preview = previewProductsCsv('name,price,cost\nEgg,9,8\n', [])
     expect(preview.rows).toHaveLength(1)
+  })
+
+  test('reports a missing cost column', () => {
+    const preview = previewProductsCsv('name,price\nEgg,9\n', [])
+    expect(preview.rows).toEqual([])
+    expect(preview.errors).toEqual([{ line: 1, message: 'Missing column: cost' }])
+  })
+
+  test('reports a row with a blank cost', () => {
+    const preview = previewProductsCsv('name,price,cost\nEgg,9,\n', [])
+    expect(preview.rows).toEqual([])
+    expect(preview.errors).toEqual([{ line: 2, message: 'Cost is required' }])
+  })
+
+  test('imports the sample CSV shipped in public/ with no errors', () => {
+    const text = readFileSync('public/sample-products.csv', 'utf8')
+    const preview = previewProductsCsv(text, [])
+    expect(preview.errors).toEqual([])
+    expect(preview.rows.length).toBeGreaterThan(0)
   })
 
   test('reports a missing required column', () => {
@@ -80,13 +100,15 @@ describe('previewProductsCsv', () => {
   })
 
   test('reports invalid rows with their line number', () => {
-    const preview = previewProductsCsv('name,price\nEgg,nine\n,5\nRice,52\n', [])
+    const preview = previewProductsCsv('name,price,cost\nEgg,nine,8\n,5,3\nRice,52,40\n', [])
     expect(preview.rows.map((r) => r.name)).toEqual(['Rice'])
     expect(preview.errors.map((e) => e.line)).toEqual([2, 3])
   })
 
   test('skips names that already exist or repeat in the file, ignoring case', () => {
-    const preview = previewProductsCsv('name,price\ncoke 1.5l,75\nEgg,9\negg,9\n', ['Coke 1.5L'])
+    const preview = previewProductsCsv('name,price,cost\ncoke 1.5l,75,60\nEgg,9,8\negg,9,8\n', [
+      'Coke 1.5L',
+    ])
     expect(preview.rows.map((r) => r.name)).toEqual(['Egg'])
     expect(preview.duplicates).toEqual([
       { line: 2, name: 'coke 1.5l' },

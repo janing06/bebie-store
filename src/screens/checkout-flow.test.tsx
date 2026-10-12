@@ -38,6 +38,23 @@ test('sells a favorite for cash and shows the change', async () => {
   expect((await db.products.get(coke.id))?.stock).toBe(9)
 })
 
+test('quick add asks for a cost, then adds the product to the cart', async () => {
+  const user = userEvent.setup()
+  renderApp()
+
+  await user.click(await screen.findByRole('button', { name: 'Quick add' }))
+  await user.type(screen.getByLabelText(/^Name/), 'Ice')
+  await user.type(screen.getByLabelText(/^Price/), '5')
+  await user.click(screen.getByRole('button', { name: 'Add to cart' }))
+  expect(await screen.findByText('Cost is required')).toBeInTheDocument()
+  expect(await db.products.count()).toBe(0)
+
+  await user.type(screen.getByLabelText(/^Cost/), '3')
+  await user.click(screen.getByRole('button', { name: 'Add to cart' }))
+  expect(await screen.findByRole('link', { name: /1 item/ })).toBeInTheDocument()
+  expect(await db.products.toArray()).toMatchObject([{ name: 'Ice', price: 500, cost: 300 }])
+})
+
 test('sells a pack on utang to a customer', async () => {
   const marlboro = await addProduct(
     db,

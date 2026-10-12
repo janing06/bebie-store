@@ -28,12 +28,25 @@ test('adds one product from the form', async () => {
 
   await user.type(await screen.findByLabelText(/Name/), 'Lucky Me Beef Mami')
   await user.type(screen.getByLabelText(/^Price/), '16')
+  await user.type(screen.getByLabelText(/^Cost/), '12')
   await user.type(screen.getByLabelText(/Starting stock/), '24')
   await user.click(screen.getByRole('button', { name: 'Save product' }))
 
   expect(await screen.findByText('Lucky Me Beef Mami')).toBeInTheDocument()
   const [product] = await db.products.toArray()
-  expect(product).toMatchObject({ name: 'Lucky Me Beef Mami', price: 1600, stock: 24 })
+  expect(product).toMatchObject({ name: 'Lucky Me Beef Mami', price: 1600, cost: 1200, stock: 24 })
+})
+
+test('asks for a cost before adding a product', async () => {
+  const user = userEvent.setup()
+  renderAt('/products/new')
+
+  await user.type(await screen.findByLabelText(/Name/), 'Lucky Me Beef Mami')
+  await user.type(screen.getByLabelText(/^Price/), '16')
+  await user.click(screen.getByRole('button', { name: 'Save product' }))
+
+  expect(await screen.findByText('Cost is required')).toBeInTheDocument()
+  expect(await db.products.count()).toBe(0)
 })
 
 test('warns about a similar existing product while typing', async () => {
@@ -193,4 +206,34 @@ test('help inside the Restock sheet leaves the Restock sheet open', async () => 
   await user.click(screen.getByRole('button', { name: /^Help: New cost/ }))
   await user.keyboard('{Escape}')
   expect(screen.getAllByRole('dialog')).toHaveLength(1)
+})
+
+test('No cost lists only active products without a cost', async () => {
+  await addProduct(db, sampleProduct({ name: 'Costed Item', cost: 500 }))
+  const bare = await addProduct(db, sampleProduct({ name: 'Bare Item' }))
+  await db.products.update(bare.id, { cost: null }) // legacy product saved before cost was required
+  const user = userEvent.setup()
+  renderAt('/products')
+
+  await user.click(await screen.findByRole('button', { name: 'No cost 1' }))
+  expect(screen.getByText('Bare Item')).toBeInTheDocument()
+  expect(screen.getByText(/no cost yet/)).toBeInTheDocument()
+  expect(screen.queryByText('Costed Item')).not.toBeInTheDocument()
+})
+
+test('adding a cost empties the No cost list', async () => {
+  const bare = await addProduct(db, sampleProduct({ name: 'Bare Item' }))
+  await db.products.update(bare.id, { cost: null }) // legacy product saved before cost was required
+  const user = userEvent.setup()
+  renderAt('/products')
+
+  await user.click(await screen.findByRole('button', { name: 'No cost 1' }))
+  await user.click(screen.getByText('Bare Item'))
+  await user.type(await screen.findByLabelText(/^Cost/), '5')
+  await user.click(screen.getByRole('button', { name: 'Save changes' }))
+
+  expect(await screen.findByRole('button', { name: 'No cost 0' })).toBeInTheDocument()
+  await user.click(screen.getByRole('button', { name: 'No cost 0' }))
+  expect(screen.getByText('All products have a cost.')).toBeInTheDocument()
+  expect((await db.products.get(bare.id))?.cost).toBe(500)
 })

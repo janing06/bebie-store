@@ -38,19 +38,28 @@ describe('parseProductForm', () => {
   })
 
   test('treats blank optional fields as not set and blank stock as 0', () => {
-    const result = parseProductForm({ ...EMPTY_PRODUCT_FORM, name: 'Ice', price: '5' })
+    const result = parseProductForm({ ...EMPTY_PRODUCT_FORM, name: 'Ice', price: '5', cost: '3' })
     expect(result).toEqual({
       ok: true,
       input: {
         name: 'Ice',
         price: 500,
-        cost: null,
+        cost: 300,
         startingStock: 0,
         lowStockAt: null,
         packSize: null,
         favorite: false,
       },
     })
+  })
+
+  test('rejects a blank cost but allows a cost of 0', () => {
+    const base = { ...EMPTY_PRODUCT_FORM, name: 'Ice', price: '5' }
+    expect(parseProductForm({ ...base, cost: ' ' })).toEqual({
+      ok: false,
+      errors: { cost: 'Cost is required' },
+    })
+    expect(parseProductForm({ ...base, cost: '0' })).toMatchObject({ ok: true, input: { cost: 0 } })
   })
 
   test('reports every invalid field', () => {

@@ -20,10 +20,8 @@ const NOW = new Date('2026-10-12T09:30:00Z')
 
 async function seed(db: StoreDb) {
   const coke = await addProduct(db, sampleProduct({ startingStock: 10 }))
-  const ice = await addProduct(
-    db,
-    sampleProduct({ name: 'Ice', price: 500, cost: null, startingStock: 0 }),
-  )
+  const ice = await addProduct(db, sampleProduct({ name: 'Ice', price: 500, startingStock: 0 }))
+  await db.products.update(ice.id, { cost: null }) // legacy product saved before cost was required
   const nena = await addCustomer(db, 'Aling Nena', 'near the chapel')
   await checkout(db, { cart: addToCart([], coke, 2), payment: 'cash', cashReceived: 20000 })
   const credit = await checkout(db, {
