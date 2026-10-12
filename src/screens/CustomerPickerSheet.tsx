@@ -1,10 +1,11 @@
 import { useLiveQuery } from 'dexie-react-hooks'
+import { Plus } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { matchesSearch } from '../data/products'
 import { addCustomer } from '../data/utang'
 import { db } from '../db'
-import { Notice, Sheet } from '../ui'
-import { btn, errorMessage, inputClass } from '../ui-kit'
+import { Notice, SearchInput, Sheet } from '../ui'
+import { btn, errorMessage } from '../ui-kit'
 
 export function CustomerPickerSheet({
   onPick,
@@ -39,13 +40,7 @@ export function CustomerPickerSheet({
 
   return (
     <Sheet title="Utang: who is buying?" onClose={onClose}>
-      <input
-        type="search"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        placeholder="🔍 Name…"
-        className={inputClass()}
-      />
+      <SearchInput value={search} onChange={setSearch} placeholder="Name…" />
       <div className="flex max-h-72 flex-col overflow-y-auto">
         {shown.map((customer) => (
           <button
@@ -62,8 +57,14 @@ export function CustomerPickerSheet({
         ))}
       </div>
       {search.trim() !== '' && (
-        <button type="button" className={btn.ghost} disabled={busy} onClick={addAndPick}>
-          ＋ New customer "{search.trim()}"
+        <button
+          type="button"
+          className={`${btn.ghost} flex items-center justify-center gap-2`}
+          disabled={busy}
+          onClick={addAndPick}
+        >
+          <Plus aria-hidden size={20} />
+          New customer "{search.trim()}"
         </button>
       )}
       {error && <Notice tone="bad">{error}</Notice>}

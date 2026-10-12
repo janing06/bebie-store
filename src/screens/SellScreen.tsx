@@ -1,4 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks'
+import { Plus, ShoppingCart, ChevronRight } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'wouter'
 import { STORE_NAME } from '../brand'
@@ -6,13 +7,12 @@ import { useCart } from '../cart-context'
 import { matchesSearch } from '../data/products'
 import { salesBetween } from '../data/sales'
 import { db, type Product } from '../db'
-import { addToCart, cartPieces, cartTotal } from '../domain/cart'
+import { addToCart, cartTotal } from '../domain/cart'
 import { rangeFor } from '../domain/dates'
 import { greeting } from '../domain/messages'
 import { summarize } from '../domain/reports'
 import { formatPesos } from '../money'
-import { Screen } from '../ui'
-import { inputClass } from '../ui-kit'
+import { Screen, SearchInput } from '../ui'
 import { PiecePackSheet } from './PiecePackSheet'
 import { QuickAddSheet } from './QuickAddSheet'
 
@@ -34,7 +34,6 @@ export function SellScreen() {
     ? active.filter((product) => matchesSearch(product.name, search))
     : active.filter((product) => product.favorite)
   const todayTotal = today ? summarize(today.sales, today.items).salesTotal : 0
-  const pieces = cartPieces(cart)
 
   function choose(product: Product) {
     if (product.packSize) setPicking(product)
@@ -52,21 +51,19 @@ export function SellScreen() {
             href="/checkout"
             className="mx-3 mb-2 flex justify-between rounded-xl bg-brand p-4 text-lg font-bold text-white"
           >
-            <span>
-              🛒 {pieces} {pieces === 1 ? 'item' : 'items'}
+            <span className="flex items-center gap-2">
+              <ShoppingCart aria-hidden />
+              {cart.length} {cart.length === 1 ? 'item' : 'items'}
             </span>
-            <span>{formatPesos(cartTotal(cart))} ›</span>
+            <span className="flex items-center gap-1">
+              {formatPesos(cartTotal(cart))}
+              <ChevronRight aria-hidden />
+            </span>
           </Link>
         )
       }
     >
-      <input
-        type="search"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        placeholder="🔍 Search product…"
-        className={inputClass()}
-      />
+      <SearchInput value={search} onChange={setSearch} placeholder="Search product…" />
       <p className="text-xs font-semibold tracking-wide text-slate-500">
         {searching ? 'RESULTS' : 'FAVORITES'}
       </p>
@@ -88,9 +85,10 @@ export function SellScreen() {
         <button
           type="button"
           onClick={() => setQuickAdd(true)}
-          className="min-h-20 rounded-xl border border-dashed border-brand p-2 text-sm font-semibold text-brand"
+          className="flex min-h-20 flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-brand p-2 text-sm font-semibold text-brand"
         >
-          + Quick add
+          <Plus aria-hidden size={20} />
+          Quick add
         </button>
       </div>
       {!searching && shown.length === 0 && (

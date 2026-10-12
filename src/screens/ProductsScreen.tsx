@@ -1,12 +1,13 @@
 import { useLiveQuery } from 'dexie-react-hooks'
+import { ChevronRight, Plus, TriangleAlert } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'wouter'
 import { isLowStock, matchesSearch, setProductActive } from '../data/products'
 import { db, type Product } from '../db'
 import { formatDay } from '../domain/dates'
 import { formatPesos } from '../money'
-import { Notice, Screen } from '../ui'
-import { btn, errorMessage, inputClass } from '../ui-kit'
+import { Notice, Screen, SearchInput } from '../ui'
+import { btn, errorMessage } from '../ui-kit'
 
 type Filter = 'all' | 'low' | 'stopped'
 const FILTER_LABELS: Record<Filter, string> = { all: 'All', low: 'Low stock', stopped: 'Stopped' }
@@ -34,18 +35,16 @@ export function ProductsScreen() {
         </Link>
       }
       footer={
-        <Link href="/products/new" className={`${btn.primary} mx-3 mb-2 block`}>
-          ＋ Add product
+        <Link
+          href="/products/new"
+          className={`${btn.primary} mx-3 mb-2 flex items-center justify-center gap-2`}
+        >
+          <Plus aria-hidden size={20} />
+          Add product
         </Link>
       }
     >
-      <input
-        type="search"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        placeholder="🔍 Search product…"
-        className={inputClass()}
-      />
+      <SearchInput value={search} onChange={setSearch} placeholder="Search product…" />
       <div className="flex gap-2">
         {(Object.keys(FILTER_LABELS) as Filter[]).map((option) => (
           <button
@@ -85,10 +84,11 @@ function ActiveRow({ product }: { product: Product }) {
             {product.cost !== null ? ` · cost ${formatPesos(product.cost)}` : ''}
           </span>
         </span>
-        <span className={low ? 'font-bold text-red-600' : ''}>
+        <span className={`flex items-center gap-1 ${low ? 'font-bold text-red-600' : ''}`}>
           {product.stock}
           {product.packSize ? ' pcs' : ''}
-          {low ? ' ⚠' : ''} ›
+          {low && <TriangleAlert aria-hidden size={16} />}
+          <ChevronRight aria-hidden size={20} className="text-slate-400" />
         </span>
       </Link>
     </li>

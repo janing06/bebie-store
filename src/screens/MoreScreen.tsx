@@ -1,4 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks'
+import { TriangleAlert } from 'lucide-react'
 import { useEffect, useState, type ChangeEvent } from 'react'
 import { Link } from 'wouter'
 import { OWNER, STORE_NAME } from '../brand'
@@ -103,8 +104,13 @@ export function MoreScreen() {
     >
       {needsBackup && (
         <Notice tone="warn">
-          ⚠ {lastBackup === null ? 'No backup yet.' : `Last backup: ${backupDays} days ago.`} Tap
-          Backup now and send the file to your son.
+          <span className="flex items-start gap-2">
+            <TriangleAlert aria-hidden size={18} className="mt-0.5 shrink-0" />
+            <span>
+              {lastBackup === null ? 'No backup yet.' : `Last backup: ${backupDays} days ago.`} Tap
+              Backup now and send the file to your son.
+            </span>
+          </span>
         </Notice>
       )}
       {persisted === false && (

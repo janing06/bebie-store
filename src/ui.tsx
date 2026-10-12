@@ -1,14 +1,26 @@
 import { useState, type ReactNode } from 'react'
+import {
+  ChartColumn,
+  ChevronLeft,
+  Menu,
+  Minus,
+  NotebookPen,
+  Package,
+  Plus,
+  Search,
+  Store,
+  X,
+} from 'lucide-react'
 import { Link, useLocation } from 'wouter'
 import { parseCount } from './money'
-import { btn, errorMessage } from './ui-kit'
+import { btn, errorMessage, inputClass } from './ui-kit'
 
 const TABS = [
-  { href: '/', label: 'Sell' },
-  { href: '/products', label: 'Products' },
-  { href: '/utang', label: 'Utang' },
-  { href: '/reports', label: 'Reports' },
-  { href: '/more', label: 'More' },
+  { href: '/', label: 'Sell', Icon: Store },
+  { href: '/products', label: 'Products', Icon: Package },
+  { href: '/utang', label: 'Utang', Icon: NotebookPen },
+  { href: '/reports', label: 'Reports', Icon: ChartColumn },
+  { href: '/more', label: 'More', Icon: Menu },
 ] as const
 
 export function Screen({
@@ -31,20 +43,18 @@ export function Screen({
   return (
     <div className="flex min-h-dvh flex-col bg-white text-slate-900">
       <header className="sticky top-0 z-10 bg-brand px-4 py-3 text-white">
-        <div className="flex items-center justify-between gap-2">
-          <h1 className="text-lg font-semibold">
-            {back && (
-              <button
-                type="button"
-                aria-label="Back"
-                className="mr-2"
-                onClick={() => window.history.back()}
-              >
-                ‹
-              </button>
-            )}
-            {title}
-          </h1>
+        <div className="flex items-center gap-1">
+          {back && (
+            <button
+              type="button"
+              aria-label="Back"
+              className="-ml-3 flex h-11 w-11 items-center justify-center"
+              onClick={() => window.history.back()}
+            >
+              <ChevronLeft aria-hidden size={28} />
+            </button>
+          )}
+          <h1 className="flex-1 text-lg font-semibold">{title}</h1>
           {action}
         </div>
         {subtitle && <p className="text-sm opacity-90">{subtitle}</p>}
@@ -64,15 +74,16 @@ export function BottomNav() {
   const [location] = useLocation()
   return (
     <nav className="flex border-t border-slate-200">
-      {TABS.map((tab) => (
+      {TABS.map(({ href, label, Icon }) => (
         <Link
-          key={tab.href}
-          href={tab.href}
-          className={`flex-1 py-3 text-center text-sm ${
-            location === tab.href ? 'font-bold text-brand' : 'text-slate-500'
+          key={href}
+          href={href}
+          className={`flex flex-1 flex-col items-center gap-0.5 py-2 text-xs ${
+            location === href ? 'font-bold text-brand' : 'text-slate-500'
           }`}
         >
-          {tab.label}
+          <Icon aria-hidden size={24} />
+          {label}
         </Link>
       ))}
     </nav>
@@ -204,7 +215,7 @@ export function Stepper({
         disabled={value === null || value <= min}
         onClick={() => change((value ?? min) - 1)}
       >
-        −
+        <Minus aria-hidden />
       </button>
       <input
         aria-label="Count"
@@ -219,8 +230,45 @@ export function Stepper({
         className={`${btn.chip} h-12 w-12 text-2xl`}
         onClick={() => change((value ?? min - 1) + 1)}
       >
-        +
+        <Plus aria-hidden />
       </button>
+    </div>
+  )
+}
+
+export function SearchInput({
+  value,
+  onChange,
+  placeholder,
+}: {
+  value: string
+  onChange: (value: string) => void
+  placeholder: string
+}) {
+  return (
+    <div className="relative">
+      <Search
+        aria-hidden
+        size={20}
+        className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-slate-400"
+      />
+      <input
+        type="search"
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder={placeholder}
+        className={`${inputClass()} pr-11 pl-10`}
+      />
+      {value !== '' && (
+        <button
+          type="button"
+          aria-label="Clear search"
+          className="absolute top-1/2 right-0 flex h-11 w-11 -translate-y-1/2 items-center justify-center text-slate-400"
+          onClick={() => onChange('')}
+        >
+          <X aria-hidden size={20} />
+        </button>
+      )}
     </div>
   )
 }

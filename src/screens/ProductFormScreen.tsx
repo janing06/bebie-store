@@ -1,4 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks'
+import { ChevronRight, Plus, Star, TriangleAlert } from 'lucide-react'
 import { useState, type ChangeEvent } from 'react'
 import { Link, useLocation, useParams } from 'wouter'
 import {
@@ -112,8 +113,13 @@ function ProductEditor({ product, products }: { product?: Product; products: Pro
             </div>
           </div>
           <div className="flex gap-2">
-            <button type="button" className={btn.chipOn} onClick={() => setSheet('restock')}>
-              ＋ Restock
+            <button
+              type="button"
+              className={`${btn.chipOn} flex items-center gap-1`}
+              onClick={() => setSheet('restock')}
+            >
+              <Plus aria-hidden size={16} />
+              Restock
             </button>
             <button type="button" className={btn.chip} onClick={() => setSheet('adjust')}>
               Adjust
@@ -135,7 +141,10 @@ function ProductEditor({ product, products }: { product?: Product; products: Pro
               className="flex justify-between py-1"
             >
               <span>{match.name}</span>
-              <span>Open ›</span>
+              <span className="flex items-center">
+                Open
+                <ChevronRight aria-hidden size={18} />
+              </span>
             </Link>
           ))}
         </Notice>
@@ -173,8 +182,13 @@ function ProductEditor({ product, products }: { product?: Product; products: Pro
       </div>
       {belowCost && (
         <Notice tone="bad">
-          ⚠ Price is <b>{formatPesos(cost - price)} below cost</b>. You will lose money on every
-          sale. Typo?
+          <span className="flex items-start gap-2">
+            <TriangleAlert aria-hidden size={18} className="mt-0.5 shrink-0" />
+            <span>
+              Price is <b>{formatPesos(cost - price)} below cost</b>. You will lose money on every
+              sale. Typo?
+            </span>
+          </span>
         </Notice>
       )}
 
@@ -208,7 +222,10 @@ function ProductEditor({ product, products }: { product?: Product; products: Pro
         />
       </Field>
       <label className="flex items-center justify-between py-1">
-        <span>⭐ Show in favorites</span>
+        <span className="flex items-center gap-2">
+          <Star aria-hidden size={20} />
+          Show in favorites
+        </span>
         <input
           type="checkbox"
           checked={form.favorite}

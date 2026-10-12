@@ -1,3 +1,4 @@
+import { Check, Minus, Plus } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { Link, useLocation } from 'wouter'
 import { useCart } from '../cart-context'
@@ -67,7 +68,7 @@ export function CheckoutScreen() {
                 className={btn.chip}
                 onClick={() => setCart(setQty(cart, line.productId, line.qty - 1))}
               >
-                −
+                <Minus aria-hidden size={20} />
               </button>
               <span className="w-8 text-center font-semibold">{line.qty}</span>
               <button
@@ -76,7 +77,7 @@ export function CheckoutScreen() {
                 className={btn.chip}
                 onClick={() => setCart(setQty(cart, line.productId, line.qty + 1))}
               >
-                +
+                <Plus aria-hidden size={20} />
               </button>
             </span>
             <span className="w-20 text-right">{formatPesos(line.price * line.qty)}</span>
@@ -150,13 +151,14 @@ export function CheckoutScreen() {
         </button>
         <button
           type="button"
-          className={`${btn.primary} flex-[2]`}
+          className={`${btn.primary} flex flex-[2] items-center justify-center gap-2`}
           disabled={saving || change === null}
           onClick={() => {
             if (received !== null) void finish({ cart, payment: 'cash', cashReceived: received })
           }}
         >
-          Done ✓
+          Done
+          <Check aria-hidden size={20} />
         </button>
       </div>
 

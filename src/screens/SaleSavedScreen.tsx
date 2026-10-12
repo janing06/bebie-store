@@ -1,3 +1,4 @@
+import { Check } from 'lucide-react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useLocation, useParams } from 'wouter'
 import { STORE_NAME } from '../brand'
@@ -28,8 +29,8 @@ export function SaleSavedScreen() {
   return (
     <Screen title={STORE_NAME}>
       <div className="flex flex-1 flex-col items-center justify-center gap-3 text-center">
-        <div className="flex h-20 w-20 items-center justify-center rounded-full bg-brand text-5xl text-white">
-          ✓
+        <div className="flex h-20 w-20 items-center justify-center rounded-full bg-brand text-white">
+          <Check aria-hidden size={48} strokeWidth={3} />
         </div>
         <h2 className="text-2xl font-bold">Sale saved</h2>
         <p className="text-slate-600">

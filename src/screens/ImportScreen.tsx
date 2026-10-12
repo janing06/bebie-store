@@ -1,3 +1,4 @@
+import { Check } from 'lucide-react'
 import { useState, type ChangeEvent } from 'react'
 import { importProducts, previewProductsCsv, type ImportPreview } from '../data/import'
 import { db } from '../db'
@@ -56,7 +57,10 @@ export function ImportScreen() {
       {preview && (
         <>
           <Notice tone={preview.rows.length > 0 ? 'good' : 'warn'}>
-            ✓ {preview.rows.length} products ready to import
+            <span className="flex items-center gap-2">
+              <Check aria-hidden size={18} />
+              {preview.rows.length} products ready to import
+            </span>
           </Notice>
           {preview.errors.map((rowError) => (
             <Notice key={`e${rowError.line}`} tone="bad">

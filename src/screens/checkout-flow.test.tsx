@@ -58,7 +58,7 @@ test('sells a pack on utang to a customer', async () => {
   const sheet = screen.getByRole('dialog', { name: 'Marlboro Red' })
   await user.click(within(sheet).getByRole('button', { name: /Pack \(20\)/ }))
   await user.click(within(sheet).getByRole('button', { name: 'Add ₱180' }))
-  await user.click(screen.getByRole('link', { name: /20 items/ }))
+  await user.click(screen.getByRole('link', { name: /1 item/ }))
   await user.click(screen.getByRole('button', { name: 'Utang' }))
   await user.click(await screen.findByRole('button', { name: /Aling Nena/ }))
 
@@ -66,6 +66,30 @@ test('sells a pack on utang to a customer', async () => {
   expect((await db.products.get(marlboro.id))?.stock).toBe(26)
   const [sale] = await db.sales.toArray()
   expect(sale).toMatchObject({ payment: 'utang', customerId: nena.id, total: 18000 })
+})
+
+test('the cart bar counts lines, not pieces', async () => {
+  await addProduct(db, sampleProduct({ favorite: true, startingStock: 10 }))
+  await addProduct(
+    db,
+    sampleProduct({
+      name: 'Marlboro Red',
+      price: 900,
+      packSize: 20,
+      favorite: true,
+      startingStock: 46,
+    }),
+  )
+  const user = userEvent.setup()
+  renderApp()
+
+  await user.click(await screen.findByRole('button', { name: /Coke 1\.5L/ }))
+  await user.click(screen.getByRole('button', { name: /Marlboro Red/ }))
+  const sheet = screen.getByRole('dialog', { name: 'Marlboro Red' })
+  await user.click(within(sheet).getByRole('button', { name: /Pack \(20\)/ }))
+  await user.click(within(sheet).getByRole('button', { name: 'Add ₱180' }))
+
+  expect(screen.getByRole('link', { name: /2 items/ })).toBeInTheDocument()
 })
 
 test('double-tapping Done saves only one sale', async () => {

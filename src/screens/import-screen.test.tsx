@@ -24,7 +24,7 @@ test('previews a CSV and imports its products', async () => {
   })
 
   await user.upload(screen.getByLabelText('Choose CSV file'), csv)
-  expect(await screen.findByText('✓ 2 products ready to import')).toBeInTheDocument()
+  expect(await screen.findByText('2 products ready to import')).toBeInTheDocument()
   await user.click(screen.getByRole('button', { name: 'Import 2 products' }))
 
   expect(await screen.findByText('Imported 2 products.')).toBeInTheDocument()

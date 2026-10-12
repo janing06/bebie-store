@@ -1,4 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks'
+import { Plus } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'wouter'
 import { matchesSearch } from '../data/products'
@@ -6,7 +7,7 @@ import { addCustomer, utangRows, type UtangRow } from '../data/utang'
 import { db } from '../db'
 import { daysSince, formatDay } from '../domain/dates'
 import { formatPesos } from '../money'
-import { Field, Notice, Screen, Sheet } from '../ui'
+import { Field, Notice, Screen, SearchInput, Sheet } from '../ui'
 import { btn, errorMessage, inputClass } from '../ui-kit'
 
 const OVERDUE_DAYS = 7
@@ -30,10 +31,10 @@ export function UtangScreen() {
         <button
           type="button"
           aria-label="New customer"
-          className="text-2xl"
+          className="flex h-11 w-11 items-center justify-center"
           onClick={() => setAdding(true)}
         >
-          ＋
+          <Plus aria-hidden size={26} />
         </button>
       }
     >
@@ -44,13 +45,7 @@ export function UtangScreen() {
           {owing.length} {owing.length === 1 ? 'customer' : 'customers'}
         </div>
       </div>
-      <input
-        type="search"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        placeholder="🔍 Search name…"
-        className={inputClass()}
-      />
+      <SearchInput value={search} onChange={setSearch} placeholder="Search name…" />
       <ul className="divide-y divide-slate-100">
         {shown.map((row) => (
           <UtangRowItem key={row.customer.id} row={row} now={now} />
@@ -58,7 +53,8 @@ export function UtangScreen() {
       </ul>
       {all.length === 0 && (
         <p className="text-sm text-slate-500">
-          No customers yet. Tap ＋ or choose Utang at checkout.
+          No customers yet. Tap <Plus aria-hidden size={14} className="inline" /> at the top or
+          choose Utang at checkout.
         </p>
       )}
       {adding && <NewCustomerSheet onClose={() => setAdding(false)} />}
