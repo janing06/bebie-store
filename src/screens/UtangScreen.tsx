@@ -69,7 +69,7 @@ export function UtangScreen() {
 function UtangRowItem({ row, now }: { row: UtangRow; now: Date }) {
   const days = row.oldestUnpaidAt ? daysSince(row.oldestUnpaidAt, now) : null
   const status = row.oldestUnpaidAt
-    ? `since ${formatDay(row.oldestUnpaidAt)} · ${days} ${days === 1 ? 'day' : 'days'}`
+    ? `since ${formatDay(row.oldestUnpaidAt)} · ${days === 0 ? 'today' : `${days} ${days === 1 ? 'day' : 'days'}`}`
     : row.balance < 0
       ? 'Overpaid'
       : 'Paid up'

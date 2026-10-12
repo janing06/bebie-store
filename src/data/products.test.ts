@@ -162,12 +162,13 @@ describe('search', () => {
 })
 
 describe('isLowStock', () => {
-  test('is true at or below the alert level, or when stock is negative', async () => {
+  test('is true at or below the alert level, or when out of stock', async () => {
     const db = freshDb()
     const product = await addProduct(db, sampleProduct({ lowStockAt: 5, startingStock: 5 }))
     expect(isLowStock(product)).toBe(true)
     expect(isLowStock({ ...product, stock: 6 })).toBe(false)
     expect(isLowStock({ ...product, lowStockAt: null, stock: -1 })).toBe(true)
-    expect(isLowStock({ ...product, lowStockAt: null, stock: 0 })).toBe(false)
+    expect(isLowStock({ ...product, lowStockAt: null, stock: 0 })).toBe(true)
+    expect(isLowStock({ ...product, lowStockAt: null, stock: 1 })).toBe(false)
   })
 })

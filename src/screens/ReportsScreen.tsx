@@ -79,7 +79,7 @@ export function ReportsScreen() {
             <Stat
               label="Sales"
               value={formatPesos(summary.salesTotal)}
-              note={`${summary.salesCount} sales`}
+              note={`${summary.salesCount} ${summary.salesCount === 1 ? 'sale' : 'sales'}`}
             />
             <Stat
               label="Profit"

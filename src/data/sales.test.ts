@@ -120,6 +120,7 @@ describe('voidSale', () => {
       cashReceived: 7500,
     })
     await voidSale(db, sale.id)
+    await expect(voidSale(db, sale.id)).rejects.toBeInstanceOf(ValidationError)
     await expect(voidSale(db, sale.id)).rejects.toThrow('already voided')
   })
 

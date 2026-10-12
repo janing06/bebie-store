@@ -167,5 +167,5 @@ export function findSimilar(products: Product[], typed: string, limit = 3): Prod
 }
 
 export function isLowStock(product: Product): boolean {
-  return product.stock < 0 || (product.lowStockAt !== null && product.stock <= product.lowStockAt)
+  return product.stock <= 0 || (product.lowStockAt !== null && product.stock <= product.lowStockAt)
 }

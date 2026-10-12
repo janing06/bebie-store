@@ -30,3 +30,15 @@ test("shows today's sales, profit and a cheer for Bebie", async () => {
   expect(screen.getAllByText('₱150').length).toBeGreaterThan(0)
   expect(screen.getByText('₱26')).toBeInTheDocument()
 })
+
+test('says "1 sale" for a single sale', async () => {
+  const coke = await addProduct(db, sampleProduct())
+  await checkout(db, { cart: addToCart([], coke, 1), payment: 'cash', cashReceived: 10000 })
+  render(
+    <Router hook={memoryLocation({ path: '/reports' }).hook}>
+      <AppRoutes />
+    </Router>,
+  )
+
+  expect(await screen.findByText('1 sale')).toBeInTheDocument()
+})

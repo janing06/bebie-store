@@ -54,9 +54,9 @@ export async function voidSale(db: StoreDb, saleId: string, now = new Date()): P
   await db.transaction('rw', [db.sales, db.saleItems, db.stockMoves, db.products], async () => {
     const sale = await db.sales.get(saleId)
     if (!sale) throw new Error(`Sale not found: ${saleId}`)
-    if (sale.voidedAt !== null) throw new Error('This sale is already voided')
+    if (sale.voidedAt !== null) throw new ValidationError({ sale: 'This sale is already voided' })
     if (!isSameLocalDay(new Date(sale.createdAt), now)) {
-      throw new Error("Only today's sales can be voided")
+      throw new ValidationError({ sale: "Only today's sales can be voided" })
     }
     const items = await db.saleItems.where('saleId').equals(saleId).toArray()
     for (const item of items) await moveStock(db, item.productId, item.qty, 'void', { saleId })

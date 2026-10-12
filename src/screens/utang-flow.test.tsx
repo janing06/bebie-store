@@ -36,3 +36,16 @@ test('records a partial payment from the customer page', async () => {
 
   expect(await screen.findByText('₱250')).toBeInTheDocument()
 })
+
+test('shows "today" instead of "0 days" for a balance from today', async () => {
+  const rice = await addProduct(db, sampleProduct({ name: 'Rice 1kg', price: 45000 }))
+  const nena = await addCustomer(db, 'Aling Nena', '')
+  await checkout(db, { cart: addToCart([], rice, 1), payment: 'utang', customerId: nena.id })
+  render(
+    <Router hook={memoryLocation({ path: '/utang' }).hook}>
+      <AppRoutes />
+    </Router>,
+  )
+
+  expect(await screen.findByText(/· today$/)).toBeInTheDocument()
+})
