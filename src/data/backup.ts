@@ -246,5 +246,5 @@ export async function lastBackupAt(db: StoreDb): Promise<string | null> {
 
 export function backupFileName(now: Date): string {
   const time = `${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}`
-  return `bebie-store-backup-${toYmd(now)}-${time}.json`
+  return `bebie-store-backup-${toYmd(now)}-${time}.txt`
 }

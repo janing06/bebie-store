@@ -125,7 +125,7 @@ export function MoreScreen() {
         Restore from backup
         <input
           type="file"
-          accept="application/json,.json"
+          accept=".txt,.json,text/plain,application/json"
           className="hidden"
           onChange={pickRestoreFile}
         />

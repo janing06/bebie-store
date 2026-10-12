@@ -78,6 +78,25 @@ test('restores a valid backup after confirming', async () => {
   expect((await db.products.toArray()).map((product) => product.name)).toEqual(['Pepsi 1L'])
 })
 
+test('restores a .txt backup file, the format the app now shares', async () => {
+  const other = freshDb()
+  await addProduct(other, sampleProduct({ name: 'Pepsi 1L' }))
+  const backup = await exportBackup(other)
+  const user = userEvent.setup()
+  renderMore()
+
+  await user.upload(
+    await screen.findByLabelText('Restore from backup'),
+    new File([JSON.stringify(backup)], 'bebie-store-backup-2026-10-12-1730.txt', {
+      type: 'text/plain',
+    }),
+  )
+  await user.click(await screen.findByRole('button', { name: 'Replace and restore' }))
+
+  expect(await screen.findByText('Backup restored.')).toBeInTheDocument()
+  expect((await db.products.toArray()).map((product) => product.name)).toEqual(['Pepsi 1L'])
+})
+
 test('warns before restoring an older backup over newer sales', async () => {
   const other = freshDb()
   await addProduct(other, sampleProduct({ name: 'Pepsi 1L' }))

@@ -221,6 +221,6 @@ describe('backup date', () => {
   })
 
   test('file name uses local date and time', () => {
-    expect(backupFileName(NOW)).toBe('bebie-store-backup-2026-10-12-1730.json')
+    expect(backupFileName(NOW)).toBe('bebie-store-backup-2026-10-12-1730.txt')
   })
 })
