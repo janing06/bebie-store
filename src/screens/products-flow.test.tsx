@@ -194,3 +194,31 @@ test('help inside the Restock sheet leaves the Restock sheet open', async () => 
   await user.keyboard('{Escape}')
   expect(screen.getAllByRole('dialog')).toHaveLength(1)
 })
+
+test('No cost lists only active products without a cost', async () => {
+  await addProduct(db, sampleProduct({ name: 'Costed Item', cost: 500 }))
+  await addProduct(db, sampleProduct({ name: 'Bare Item', cost: null }))
+  const user = userEvent.setup()
+  renderAt('/products')
+
+  await user.click(await screen.findByRole('button', { name: 'No cost 1' }))
+  expect(screen.getByText('Bare Item')).toBeInTheDocument()
+  expect(screen.getByText(/no cost yet/)).toBeInTheDocument()
+  expect(screen.queryByText('Costed Item')).not.toBeInTheDocument()
+})
+
+test('adding a cost empties the No cost list', async () => {
+  const bare = await addProduct(db, sampleProduct({ name: 'Bare Item', cost: null }))
+  const user = userEvent.setup()
+  renderAt('/products')
+
+  await user.click(await screen.findByRole('button', { name: 'No cost 1' }))
+  await user.click(screen.getByText('Bare Item'))
+  await user.type(await screen.findByLabelText(/^Cost/), '5')
+  await user.click(screen.getByRole('button', { name: 'Save changes' }))
+
+  expect(await screen.findByRole('button', { name: 'No cost 0' })).toBeInTheDocument()
+  await user.click(screen.getByRole('button', { name: 'No cost 0' }))
+  expect(screen.getByText('All products have a cost.')).toBeInTheDocument()
+  expect((await db.products.get(bare.id))?.cost).toBe(500)
+})

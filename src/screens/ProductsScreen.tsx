@@ -9,8 +9,13 @@ import { formatPesos, pluralize } from '../money'
 import { Notice, Screen, SearchInput } from '../ui'
 import { ROW, btn, errorMessage } from '../ui-kit'
 
-type Filter = 'all' | 'low' | 'stopped'
-const FILTER_LABELS: Record<Filter, string> = { all: 'All', low: 'Low stock', stopped: 'Stopped' }
+type Filter = 'all' | 'low' | 'nocost' | 'stopped'
+const FILTER_LABELS: Record<Filter, string> = {
+  all: 'All',
+  low: 'Low stock',
+  nocost: 'No cost',
+  stopped: 'Stopped',
+}
 
 export function ProductsScreen() {
   const products = useLiveQuery(() => db.products.orderBy('name').toArray(), [])
@@ -21,6 +26,7 @@ export function ProductsScreen() {
   const lists: Record<Filter, Product[]> = {
     all: all.filter((product) => product.active),
     low: all.filter((product) => product.active && isLowStock(product)),
+    nocost: all.filter((product) => product.active && product.cost === null),
     stopped: all.filter((product) => !product.active),
   }
   const shown = lists[filter].filter((product) => matchesSearch(product.name, search))
@@ -48,12 +54,12 @@ export function ProductsScreen() {
       }
     >
       <SearchInput value={search} onChange={setSearch} placeholder="Search product…" />
-      <div className="flex gap-2">
+      <div className="flex gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {(Object.keys(FILTER_LABELS) as Filter[]).map((option) => (
           <button
             key={option}
             type="button"
-            className={filter === option ? btn.chipOn : btn.chip}
+            className={`shrink-0 whitespace-nowrap ${filter === option ? btn.chipOn : btn.chip}`}
             onClick={() => setFilter(option)}
           >
             {FILTER_LABELS[option]} {lists[option].length}
@@ -63,18 +69,24 @@ export function ProductsScreen() {
       <ul className="divide-y divide-slate-100">
         {shown.map((product) =>
           product.active ? (
-            <ActiveRow key={product.id} product={product} />
+            <ActiveRow key={product.id} product={product} showMissingCost={filter === 'nocost'} />
           ) : (
             <StoppedRow key={product.id} product={product} />
           ),
         )}
       </ul>
-      {shown.length === 0 && <p className="text-sm text-slate-500">No products here.</p>}
+      {shown.length === 0 && (
+        <p className="text-sm text-slate-500">
+          {filter === 'nocost' && lists.nocost.length === 0
+            ? 'All products have a cost.'
+            : 'No products here.'}
+        </p>
+      )}
     </Screen>
   )
 }
 
-function ActiveRow({ product }: { product: Product }) {
+function ActiveRow({ product, showMissingCost }: { product: Product; showMissingCost: boolean }) {
   const low = isLowStock(product)
   return (
     <li>
@@ -84,7 +96,11 @@ function ActiveRow({ product }: { product: Product }) {
           <span className="block text-xs text-slate-500">
             {formatPesos(product.price)}
             {product.packSize ? `/pc · pack ${product.packSize}` : ''}
-            {product.cost !== null ? ` · cost ${formatPesos(product.cost)}` : ''}
+            {showMissingCost ? (
+              <span className="text-slate-500"> · no cost yet</span>
+            ) : (
+              product.cost !== null && ` · cost ${formatPesos(product.cost)}`
+            )}
           </span>
         </span>
         <span className={`flex items-center gap-1 ${low ? 'font-bold text-red-600' : ''}`}>
