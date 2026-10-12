@@ -115,48 +115,49 @@ test('restocks by a typed count and blocks an empty one', async () => {
   await waitFor(async () => expect((await db.products.get(mami.id))?.stock).toBe(50))
 })
 
-test('field help opens, closes on outside tap or Escape, and one at a time', async () => {
+test('field help opens as a sheet and closes with the button', async () => {
   const user = userEvent.setup()
   renderAt('/products/new')
 
   const costHelp = await screen.findByRole('button', { name: 'Help: Cost' })
-  const priceHelp = screen.getByRole('button', { name: 'Help: Price' })
   expect(costHelp).toHaveAttribute('aria-expanded', 'false')
-  expect(screen.queryByText(/Pila ang palit nimo/)).not.toBeInTheDocument()
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
 
   await user.click(costHelp)
+  const dialog = screen.getByRole('dialog', { name: 'Cost' })
   expect(costHelp).toHaveAttribute('aria-expanded', 'true')
-  expect(screen.getByRole('tooltip')).toHaveAttribute('id', costHelp.getAttribute('aria-controls'))
-  expect(screen.getByText(/Pila ang palit nimo/)).toBeInTheDocument()
-  expect(screen.getByText(/What you paid for one piece/)).toBeInTheDocument()
+  expect(within(dialog).getByText(/Pila ang palit nimo/)).toBeInTheDocument()
+  expect(within(dialog).getByText(/What you paid for one piece/)).toBeInTheDocument()
+  expect(document.body.style.overflow).toBe('hidden')
 
-  await user.click(priceHelp)
-  expect(costHelp).toHaveAttribute('aria-expanded', 'false')
-  expect(screen.queryByText(/Pila ang palit nimo/)).not.toBeInTheDocument()
-  expect(screen.getByText(/Presyo kada piraso/)).toBeInTheDocument()
-
-  await user.pointer({ keys: '[MouseLeft]', target: document.body })
-  expect(screen.queryByText(/Presyo kada piraso/)).not.toBeInTheDocument()
-
-  await user.click(costHelp)
-  await user.keyboard('{Escape}')
-  expect(screen.queryByText(/Pila ang palit nimo/)).not.toBeInTheDocument()
-
-  await user.click(costHelp)
-  await user.click(costHelp)
-  expect(screen.queryByText(/Pila ang palit nimo/)).not.toBeInTheDocument()
+  await user.click(within(dialog).getByRole('button', { name: 'Sige, gets nako' }))
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  expect(document.body.style.overflow).toBe('')
 })
 
-test('typing in Name still works after opening help', async () => {
+test('field help closes on an overlay tap or Escape', async () => {
+  const user = userEvent.setup()
+  renderAt('/products/new')
+
+  const priceHelp = await screen.findByRole('button', { name: 'Help: Price' })
+  await user.click(priceHelp)
+  await user.click(screen.getByRole('dialog', { name: 'Price' }).parentElement!)
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+
+  await user.click(priceHelp)
+  await user.keyboard('{Escape}')
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+})
+
+test('typing in Name still works after opening and closing help', async () => {
   const user = userEvent.setup()
   renderAt('/products/new')
 
   const name = await screen.findByLabelText(/Name/)
   await user.type(name, 'Co')
   await user.click(screen.getByRole('button', { name: 'Help: Name' }))
-  expect(screen.getByText(/Ngalan sa produkto/)).toBeInTheDocument()
-  expect(name).toHaveFocus()
-  await user.keyboard('ke')
+  await user.click(screen.getByRole('button', { name: 'Sige, gets nako' }))
+  await user.type(name, 'ke')
   expect(name).toHaveValue('Coke')
 })
 
@@ -167,7 +168,29 @@ test('favorites help does not toggle the favorites switch', async () => {
   const favorite = await screen.findByLabelText('Show in favorites')
   await user.click(screen.getByRole('button', { name: 'Help: Show in favorites' }))
   expect(favorite).not.toBeChecked()
-  expect(screen.getByText(/Ipakita sa Sell screen/)).toBeInTheDocument()
+  expect(screen.getByRole('dialog', { name: 'Show in favorites' })).toBeInTheDocument()
+  await user.click(screen.getByRole('button', { name: 'Sige, gets nako' }))
   await user.click(screen.getByText('Show in favorites'))
   expect(favorite).toBeChecked()
+})
+
+test('help inside the Restock sheet leaves the Restock sheet open', async () => {
+  const coke = await addProduct(db, sampleProduct())
+  const user = userEvent.setup()
+  renderAt(`/products/${coke.id}`)
+
+  await user.click(await screen.findByRole('button', { name: /Restock/ }))
+  await user.click(screen.getByRole('button', { name: /^Help: New cost/ }))
+  expect(screen.getAllByRole('dialog')).toHaveLength(2)
+  expect(document.body.style.overflow).toBe('hidden')
+
+  await user.click(screen.getByRole('button', { name: 'Sige, gets nako' }))
+  expect(screen.getAllByRole('dialog')).toHaveLength(1)
+  expect(screen.getByRole('dialog', { name: /Restock/ })).toBeInTheDocument()
+  expect(document.body.style.overflow).toBe('hidden')
+
+  await user.keyboard('{Escape}')
+  await user.click(screen.getByRole('button', { name: /^Help: New cost/ }))
+  await user.keyboard('{Escape}')
+  expect(screen.getAllByRole('dialog')).toHaveLength(1)
 })

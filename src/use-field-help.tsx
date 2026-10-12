@@ -1,35 +1,32 @@
 import { Info } from 'lucide-react'
-import { useId, useRef, useSyncExternalStore } from 'react'
+import { useState } from 'react'
 import type { FieldHelp } from './field-help'
-import { HelpPopover } from './help-popover'
-import { isOpen, setOpenId, subscribe } from './help-store'
+import { HelpSheet } from './help-sheet'
 
-/** Info button for a field. Place `button` right after the label text. Its popover floats over the form. */
+/** Info button for a field. Place `button` right after the label text. Tapping it opens the help sheet. */
 export function useFieldHelp(label: string, help?: FieldHelp) {
-  const id = useId()
-  const anchor = useRef<HTMLButtonElement>(null)
-  const open = useSyncExternalStore(subscribe, () => isOpen(id))
+  const [open, setOpen] = useState(false)
   if (!help) return { button: null }
 
+  const title = label.replace(/\s*₱?\s*\*?$/, '')
   const button = (
     <>
       <button
-        ref={anchor}
         type="button"
         aria-expanded={open}
-        aria-controls={id}
+        aria-haspopup="dialog"
         className="-my-3.5 -mr-3.5 flex select-none items-center justify-center p-3.5 text-brand active:opacity-60"
         // Keeps focus in the input the user is typing in.
         onMouseDown={(event) => event.preventDefault()}
         onClick={(event) => {
           event.preventDefault()
-          setOpenId(open ? null : id)
+          setOpen(!open)
         }}
       >
         <Info aria-hidden size={18} className={open ? 'fill-brand text-white' : ''} />
-        <span className="sr-only">{`Help: ${label.replace(/\s*₱?\s*\*?$/, '')}`}</span>
+        <span className="sr-only">{`Help: ${title}`}</span>
       </button>
-      {open && <HelpPopover id={id} help={help} anchor={anchor} />}
+      {open && <HelpSheet title={title} help={help} onClose={() => setOpen(false)} />}
     </>
   )
   return { button }
