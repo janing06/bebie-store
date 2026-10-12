@@ -9,6 +9,31 @@ Ice,5,,,,,
 `
 
 describe('previewProductsCsv', () => {
+  test('accepts friendly header spellings', () => {
+    const preview = previewProductsCsv(
+      'Name,Price,Stock,Pack size,Low stock at,Favorite\nMami,9,5,20,2,yes',
+      [],
+    )
+    expect(preview.errors).toEqual([])
+    expect(preview.rows[0]).toMatchObject({
+      startingStock: 5,
+      packSize: 20,
+      lowStockAt: 2,
+      favorite: true,
+    })
+  })
+
+  test('shows an error for an unknown column but still imports the rows', () => {
+    const preview = previewProductsCsv('name,price,Colour\nMami,9,red', [])
+    expect(preview.errors).toEqual([{ line: 1, message: 'Unknown column: Colour' }])
+    expect(preview.rows).toHaveLength(1)
+  })
+
+  test('shows Papa Parse errors such as a broken quote', () => {
+    const preview = previewProductsCsv('name,price\n"Mami,9\nIce,5', [])
+    expect(preview.errors.length).toBeGreaterThan(0)
+  })
+
   test('reads valid rows in pesos and converts them', () => {
     const preview = previewProductsCsv(CSV, [])
     expect(preview.errors).toEqual([])

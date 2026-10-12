@@ -9,6 +9,15 @@ export interface ImportPreview {
 }
 
 const REQUIRED_COLUMNS = ['name', 'price']
+const KNOWN_COLUMNS: Record<string, string> = {
+  name: 'name',
+  price: 'price',
+  cost: 'cost',
+  stock: 'stock',
+  lowstockat: 'lowStockAt',
+  packsize: 'packSize',
+  favorite: 'favorite',
+}
 
 function isYes(value: string | undefined): boolean {
   return /^(y|yes|true|1)$/i.test((value ?? '').trim())
@@ -16,12 +25,24 @@ function isYes(value: string | undefined): boolean {
 
 /** Line numbers match the spreadsheet: the header is line 1. */
 export function previewProductsCsv(text: string, existingNames: string[]): ImportPreview {
+  const unknownHeaders: string[] = []
   const parsed = Papa.parse<Record<string, string | undefined>>(text.trim(), {
     header: true,
     skipEmptyLines: 'greedy',
-    transformHeader: (header) => header.trim(),
+    transformHeader: (header) => {
+      const known = KNOWN_COLUMNS[header.toLowerCase().replace(/[\s_-]/g, '')]
+      if (known) return known
+      if (header.trim() !== '') unknownHeaders.push(header.trim())
+      return header.trim()
+    },
   })
   const preview: ImportPreview = { rows: [], errors: [], duplicates: [] }
+  for (const header of unknownHeaders) {
+    preview.errors.push({ line: 1, message: `Unknown column: ${header}` })
+  }
+  for (const error of parsed.errors) {
+    preview.errors.push({ line: (error.row ?? 0) + 2, message: error.message })
+  }
   const missing = REQUIRED_COLUMNS.filter((column) => !parsed.meta.fields?.includes(column))
   if (missing.length > 0) {
     preview.errors.push({ line: 1, message: `Missing column: ${missing.join(', ')}` })
