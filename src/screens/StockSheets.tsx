@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { adjustStock, costPerPiece, restock } from '../data/stock'
 import { ADJUST_REASONS, db, type AdjustReason, type Product } from '../db'
 import { formatPesos, parseCount, pluralize, parsePesos, type Centavos } from '../money'
+import { FIELD_HELP } from '../field-help'
 import { Field, Notice, Sheet, Stepper } from '../ui'
 import { btn, errorMessage, inputClass } from '../ui-kit'
 
@@ -74,6 +75,7 @@ export function RestockSheet({
         label={`New cost per ${byPack ? 'pack' : 'piece'} ₱ (optional)`}
         error={costInvalid ? 'Enter a cost like 165 or 8.25' : undefined}
         hint={costHint}
+        help={FIELD_HELP.restockCost}
       >
         <input
           value={costText}

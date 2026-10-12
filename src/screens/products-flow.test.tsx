@@ -114,3 +114,50 @@ test('restocks by a typed count and blocks an empty one', async () => {
 
   await waitFor(async () => expect((await db.products.get(mami.id))?.stock).toBe(50))
 })
+
+test('field help opens and closes per field without stealing focus', async () => {
+  const user = userEvent.setup()
+  renderAt('/products/new')
+
+  const costHelp = await screen.findByRole('button', { name: 'Help: Cost' })
+  expect(costHelp).toHaveAttribute('aria-expanded', 'false')
+  expect(screen.queryByText(/Pila ang palit nimo/)).not.toBeInTheDocument()
+
+  await user.click(costHelp)
+  expect(costHelp).toHaveAttribute('aria-expanded', 'true')
+  expect(screen.getByText(/Pila ang palit nimo/)).toBeInTheDocument()
+  expect(screen.getByText(/What you paid for one piece/)).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: 'Help: Price' })).toHaveAttribute(
+    'aria-expanded',
+    'false',
+  )
+  expect(screen.queryByText(/Presyo kada piraso/)).not.toBeInTheDocument()
+
+  await user.click(costHelp)
+  expect(costHelp).toHaveAttribute('aria-expanded', 'false')
+  expect(screen.queryByText(/Pila ang palit nimo/)).not.toBeInTheDocument()
+})
+
+test('typing in Name still works after opening help', async () => {
+  const user = userEvent.setup()
+  renderAt('/products/new')
+
+  const name = await screen.findByLabelText(/Name/)
+  await user.click(screen.getByRole('button', { name: 'Help: Name' }))
+  expect(name).not.toHaveFocus()
+  await user.type(name, 'Coke')
+  expect(name).toHaveValue('Coke')
+  expect(name).toHaveFocus()
+})
+
+test('favorites help does not toggle the favorites switch', async () => {
+  const user = userEvent.setup()
+  renderAt('/products/new')
+
+  const favorite = await screen.findByLabelText('Show in favorites')
+  await user.click(screen.getByRole('button', { name: 'Help: Show in favorites' }))
+  expect(favorite).not.toBeChecked()
+  expect(screen.getByText(/Ipakita sa Sell screen/)).toBeInTheDocument()
+  await user.click(screen.getByText('Show in favorites'))
+  expect(favorite).toBeChecked()
+})
