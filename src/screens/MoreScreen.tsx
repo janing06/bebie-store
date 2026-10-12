@@ -139,7 +139,7 @@ export function MoreScreen() {
       <p className="text-xs font-semibold tracking-wide text-slate-500">TODAY'S SALES</p>
       <ul className="divide-y divide-slate-100">
         {sales.map((sale) => (
-          <li key={sale.id} className="flex items-center justify-between py-2">
+          <li key={sale.id} className="flex min-h-12 items-center justify-between py-2">
             <span className={sale.voidedAt ? 'text-slate-400 line-through' : ''}>
               {formatPesos(sale.total)} ·{' '}
               {sale.payment === 'cash' ? 'Cash' : `Utang (${customerName(sale.customerId)})`}
@@ -152,7 +152,7 @@ export function MoreScreen() {
             ) : (
               <button
                 type="button"
-                className="text-sm text-slate-500"
+                className="min-h-11 select-none px-2 text-sm text-slate-500 active:opacity-60"
                 onClick={() => setVoiding(sale)}
               >
                 Void

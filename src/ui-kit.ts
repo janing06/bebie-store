@@ -1,16 +1,18 @@
 import { ValidationError } from './validation'
 
+const PRESS = 'select-none transition active:scale-[0.98] active:opacity-80'
+
 export const btn = {
-  primary:
-    'rounded-xl bg-brand px-4 py-3 text-center text-base font-bold text-white disabled:opacity-40',
-  ghost:
-    'rounded-xl border border-slate-300 bg-white px-4 py-3 text-center text-base font-bold text-slate-800 disabled:opacity-40',
-  warn: 'rounded-xl bg-amber-500 px-4 py-3 text-center text-base font-bold text-white disabled:opacity-40',
-  danger:
-    'rounded-xl bg-red-600 px-4 py-3 text-center text-base font-bold text-white disabled:opacity-40',
-  chip: 'rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold',
-  chipOn: 'rounded-lg border border-brand bg-brand px-3 py-2 text-sm font-semibold text-white',
+  primary: `${PRESS} rounded-xl bg-brand px-4 py-3 text-center text-base font-bold text-white disabled:opacity-40`,
+  ghost: `${PRESS} rounded-xl border border-slate-300 bg-white px-4 py-3 text-center text-base font-bold text-slate-800 disabled:opacity-40`,
+  warn: `${PRESS} rounded-xl bg-amber-500 px-4 py-3 text-center text-base font-bold text-white disabled:opacity-40`,
+  danger: `${PRESS} rounded-xl bg-red-600 px-4 py-3 text-center text-base font-bold text-white disabled:opacity-40`,
+  chip: `${PRESS} min-h-11 min-w-11 rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold`,
+  chipOn: `${PRESS} min-h-11 min-w-11 rounded-lg border border-brand bg-brand px-3 py-2 text-sm font-semibold text-white`,
 }
+
+/** A tappable list row: at least 48px tall with a pressed state. */
+export const ROW = 'flex min-h-12 select-none items-center justify-between py-3 active:bg-slate-100'
 
 const INPUT_BASE = 'w-full rounded-xl border px-3 py-2 text-base'
 

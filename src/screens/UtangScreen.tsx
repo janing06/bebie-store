@@ -8,7 +8,7 @@ import { db } from '../db'
 import { daysSince, formatDay } from '../domain/dates'
 import { formatPesos } from '../money'
 import { Field, Notice, Screen, SearchInput, Sheet } from '../ui'
-import { btn, errorMessage, inputClass } from '../ui-kit'
+import { ROW, btn, errorMessage, inputClass } from '../ui-kit'
 
 const OVERDUE_DAYS = 7
 
@@ -31,7 +31,7 @@ export function UtangScreen() {
         <button
           type="button"
           aria-label="New customer"
-          className="flex h-11 w-11 items-center justify-center"
+          className="flex h-11 w-11 select-none items-center justify-center transition active:opacity-60"
           onClick={() => setAdding(true)}
         >
           <Plus aria-hidden size={26} />
@@ -78,7 +78,7 @@ function UtangRowItem({ row, now }: { row: UtangRow; now: Date }) {
 
   return (
     <li>
-      <Link href={`/utang/${row.customer.id}`} className="flex items-center justify-between py-3">
+      <Link href={`/utang/${row.customer.id}`} className={ROW}>
         <span>
           <b>{row.customer.name}</b>
           <span className="block text-xs text-slate-500">{status}</span>

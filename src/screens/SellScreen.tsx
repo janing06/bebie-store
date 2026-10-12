@@ -49,7 +49,7 @@ export function SellScreen() {
         cart.length > 0 && (
           <Link
             href="/checkout"
-            className="mx-3 mb-2 flex justify-between rounded-xl bg-brand p-4 text-lg font-bold text-white"
+            className="mx-3 mb-2 flex select-none justify-between rounded-xl bg-brand p-4 text-lg font-bold text-white transition active:scale-[0.98] active:opacity-80"
           >
             <span className="flex items-center gap-2">
               <ShoppingCart aria-hidden />
@@ -73,7 +73,7 @@ export function SellScreen() {
             key={product.id}
             type="button"
             onClick={() => choose(product)}
-            className="flex min-h-20 flex-col items-center justify-center rounded-xl border border-slate-200 bg-slate-50 p-2 text-center active:bg-slate-200"
+            className="flex min-h-20 select-none flex-col items-center justify-center rounded-xl border border-slate-200 bg-slate-50 p-2 text-center transition active:scale-[0.98] active:bg-slate-200"
           >
             <span className="text-sm font-semibold">{product.name}</span>
             <span className="text-sm font-semibold text-brand">
@@ -85,7 +85,7 @@ export function SellScreen() {
         <button
           type="button"
           onClick={() => setQuickAdd(true)}
-          className="flex min-h-20 flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-brand p-2 text-sm font-semibold text-brand"
+          className="flex min-h-20 select-none flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-brand p-2 text-sm font-semibold text-brand"
         >
           <Plus aria-hidden size={20} />
           Quick add

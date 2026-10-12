@@ -3,11 +3,22 @@
 @theme {
   --color-brand: #0f766e;
   --color-brand-soft: #f0fdfa;
+
+  --animate-sheet-up: sheet-up 200ms ease-out;
+  @keyframes sheet-up {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
 }
 
 html,
 body {
   overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 input[type='search']::-webkit-search-cancel-button {

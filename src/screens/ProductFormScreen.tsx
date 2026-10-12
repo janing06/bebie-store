@@ -138,7 +138,7 @@ function ProductEditor({ product, products }: { product?: Product; products: Pro
             <Link
               key={match.id}
               href={`/products/${match.id}`}
-              className="flex justify-between py-1"
+              className="flex min-h-11 select-none items-center justify-between py-1 active:opacity-60"
             >
               <span>{match.name}</span>
               <span className="flex items-center">
@@ -221,7 +221,7 @@ function ProductEditor({ product, products }: { product?: Product; products: Pro
           className={highlight('packSize')}
         />
       </Field>
-      <label className="flex items-center justify-between py-1">
+      <label className="flex min-h-12 items-center justify-between py-1">
         <span className="flex items-center gap-2">
           <Star aria-hidden size={20} />
           Show in favorites
@@ -230,7 +230,7 @@ function ProductEditor({ product, products }: { product?: Product; products: Pro
           type="checkbox"
           checked={form.favorite}
           onChange={update('favorite')}
-          className="h-6 w-6 accent-brand"
+          className="relative h-7 w-12 shrink-0 cursor-pointer appearance-none rounded-full bg-slate-300 transition-colors before:absolute before:top-0.5 before:left-0.5 before:h-6 before:w-6 before:rounded-full before:bg-white before:shadow before:transition-transform before:content-[''] checked:bg-brand checked:before:translate-x-5"
         />
       </label>
 
@@ -241,7 +241,7 @@ function ProductEditor({ product, products }: { product?: Product; products: Pro
       {product?.active && (
         <button
           type="button"
-          className="p-2 text-center font-semibold text-red-600"
+          className="min-h-11 select-none p-2 text-center font-semibold text-red-600 active:opacity-60"
           onClick={() => setSheet('stop')}
         >
           Stop selling this product

@@ -46,7 +46,7 @@ export function CustomerPickerSheet({
           <button
             key={customer.id}
             type="button"
-            className="border-b border-slate-100 py-3 text-left text-base font-semibold"
+            className="min-h-12 select-none border-b border-slate-100 py-3 text-left text-base font-semibold active:bg-slate-100"
             onClick={() => onPick(customer.id)}
           >
             {customer.name}

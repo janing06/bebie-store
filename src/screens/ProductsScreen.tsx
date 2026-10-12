@@ -7,7 +7,7 @@ import { db, type Product } from '../db'
 import { formatDay } from '../domain/dates'
 import { formatPesos } from '../money'
 import { Notice, Screen, SearchInput } from '../ui'
-import { btn, errorMessage } from '../ui-kit'
+import { ROW, btn, errorMessage } from '../ui-kit'
 
 type Filter = 'all' | 'low' | 'stopped'
 const FILTER_LABELS: Record<Filter, string> = { all: 'All', low: 'Low stock', stopped: 'Stopped' }
@@ -30,7 +30,10 @@ export function ProductsScreen() {
       title="Products"
       nav
       action={
-        <Link href="/import" className="text-sm">
+        <Link
+          href="/import"
+          className="flex min-h-11 select-none items-center px-2 text-sm active:opacity-60"
+        >
           Import
         </Link>
       }
@@ -75,7 +78,7 @@ function ActiveRow({ product }: { product: Product }) {
   const low = isLowStock(product)
   return (
     <li>
-      <Link href={`/products/${product.id}`} className="flex items-center justify-between py-3">
+      <Link href={`/products/${product.id}`} className={ROW}>
         <span>
           <b>{product.name}</b>
           <span className="block text-xs text-slate-500">
@@ -110,14 +113,22 @@ function StoppedRow({ product }: { product: Product }) {
   }
 
   return (
-    <li className="flex flex-wrap items-center justify-between py-3">
-      <Link href={`/products/${product.id}`} className="opacity-60">
+    <li className="flex min-h-12 flex-wrap items-center justify-between py-3">
+      <Link
+        href={`/products/${product.id}`}
+        className="flex min-h-12 select-none flex-col justify-center opacity-60"
+      >
         <b>{product.name}</b>
         <span className="block text-xs text-slate-500">
           stopped {formatDay(product.updatedAt)} · {product.stock} in stock
         </span>
       </Link>
-      <button type="button" className="font-semibold text-brand" disabled={saving} onClick={turnOn}>
+      <button
+        type="button"
+        className="min-h-11 select-none px-2 font-semibold text-brand active:opacity-60"
+        disabled={saving}
+        onClick={turnOn}
+      >
         Turn on
       </button>
       {error && (

@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import {
   ChartColumn,
   ChevronLeft,
@@ -42,13 +42,13 @@ export function Screen({
 }) {
   return (
     <div className="flex min-h-dvh flex-col bg-white text-slate-900">
-      <header className="sticky top-0 z-10 bg-brand px-4 py-3 text-white">
+      <header className="sticky top-0 z-10 bg-brand px-4 pt-[calc(0.75rem+env(safe-area-inset-top))] pb-3 text-white">
         <div className="flex items-center gap-1">
           {back && (
             <button
               type="button"
               aria-label="Back"
-              className="-ml-3 flex h-11 w-11 items-center justify-center"
+              className="-ml-3 flex h-11 w-11 select-none items-center justify-center transition active:opacity-60"
               onClick={() => window.history.back()}
             >
               <ChevronLeft aria-hidden size={28} />
@@ -61,7 +61,7 @@ export function Screen({
       </header>
       <main className="flex flex-1 flex-col gap-3 p-3">{children}</main>
       {(footer || nav) && (
-        <div className="sticky bottom-0 bg-white">
+        <div className="sticky bottom-0 bg-white pb-[env(safe-area-inset-bottom)]">
           {footer}
           {nav && <BottomNav />}
         </div>
@@ -78,7 +78,7 @@ export function BottomNav() {
         <Link
           key={href}
           href={href}
-          className={`flex flex-1 flex-col items-center gap-0.5 py-2 text-xs ${
+          className={`flex flex-1 select-none flex-col items-center gap-0.5 py-2 text-xs transition active:bg-slate-100 ${
             location === href ? 'font-bold text-brand' : 'text-slate-500'
           }`}
         >
@@ -99,14 +99,23 @@ export function Sheet({
   onClose: () => void
   children: ReactNode
 }) {
+  useEffect(() => {
+    const previous = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = previous
+    }
+  }, [])
+
   return (
     <div className="fixed inset-0 z-20 flex flex-col justify-end bg-black/40" onClick={onClose}>
       <div
         role="dialog"
         aria-label={title}
-        className="flex max-h-[90dvh] flex-col gap-3 overflow-y-auto rounded-t-2xl bg-white p-4"
+        className="flex max-h-[90dvh] animate-sheet-up flex-col gap-3 overflow-y-auto rounded-t-2xl bg-white p-4 pb-[max(1rem,env(safe-area-inset-bottom))] motion-reduce:animate-none"
         onClick={(event) => event.stopPropagation()}
       >
+        <div aria-hidden className="mx-auto h-1.5 w-10 shrink-0 rounded-full bg-slate-300" />
         <h2 className="text-lg font-bold">{title}</h2>
         {children}
       </div>
