@@ -42,10 +42,10 @@ export function QuickAddSheet({
       <p className="text-sm text-slate-600">
         Adds the product with stock 0. Count it later in Products.
       </p>
-      <Field label="Name" error={errors.name} help={FIELD_HELP.name}>
+      <Field label="Name *" error={errors.name} help={FIELD_HELP.name}>
         <input value={name} onChange={(e) => setName(e.target.value)} className={inputClass()} />
       </Field>
-      <Field label="Price ₱" error={errors.price} help={FIELD_HELP.price}>
+      <Field label="Price ₱ *" error={errors.price} help={FIELD_HELP.price}>
         <input
           value={price}
           inputMode="decimal"
