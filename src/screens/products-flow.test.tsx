@@ -98,3 +98,19 @@ test('turns a stopped product on from the Stopped list', async () => {
   await waitFor(() => expect(screen.queryByText('Old Item')).not.toBeInTheDocument())
   expect((await db.products.get(mami.id))?.active).toBe(true)
 })
+
+test('restocks by a typed count and blocks an empty one', async () => {
+  const mami = await addProduct(db, sampleProduct({ startingStock: 2 }))
+  const user = userEvent.setup()
+  renderAt(`/products/${mami.id}`)
+
+  await user.click(await screen.findByRole('button', { name: /Restock/ }))
+  const sheet = await screen.findByRole('dialog')
+  const count = within(sheet).getByLabelText('Count')
+  await user.clear(count)
+  expect(within(sheet).getByRole('button', { name: 'Add stock' })).toBeDisabled()
+  await user.type(count, '48')
+  await user.click(within(sheet).getByRole('button', { name: 'Add stock' }))
+
+  await waitFor(async () => expect((await db.products.get(mami.id))?.stock).toBe(50))
+})

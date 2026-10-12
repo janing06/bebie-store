@@ -23,13 +23,13 @@ export function RestockSheet({
 }) {
   const packSize = product.packSize
   const [unit, setUnit] = useState<'piece' | 'pack'>(packSize ? 'pack' : 'piece')
-  const [count, setCount] = useState(1)
+  const [count, setCount] = useState<number | null>(1)
   const [costText, setCostText] = useState('')
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
 
   const byPack = unit === 'pack' && packSize !== null
-  const pieces = byPack ? count * packSize : count
+  const pieces = count === null ? 0 : byPack ? count * packSize : count
   const enteredCost = costText.trim() === '' ? null : parsePesos(costText)
   const costInvalid = costText.trim() !== '' && enteredCost === null
   const newCostPerPiece =
@@ -86,7 +86,12 @@ export function RestockSheet({
         {product.stock} + {pieces} = <b>{product.stock + pieces} pcs</b>
       </div>
       {error && <Notice tone="bad">{error}</Notice>}
-      <button type="button" className={btn.primary} disabled={saving || costInvalid} onClick={save}>
+      <button
+        type="button"
+        className={btn.primary}
+        disabled={saving || costInvalid || count === null}
+        onClick={save}
+      >
         Add stock
       </button>
     </Sheet>

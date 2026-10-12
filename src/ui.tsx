@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import { Link, useLocation } from 'wouter'
+import { parseCount } from './money'
 import { btn, errorMessage } from './ui-kit'
 
 const TABS = [
@@ -171,32 +172,52 @@ export function Field({
   )
 }
 
+/** A typeable count with − / + buttons. `value` is null while the typed text is not a valid count. */
 export function Stepper({
   value,
   onChange,
   min = 1,
 }: {
-  value: number
-  onChange: (value: number) => void
+  value: number | null
+  onChange: (value: number | null) => void
   min?: number
 }) {
+  const [text, setText] = useState(String(value ?? ''))
+
+  function change(next: number | null) {
+    setText(next === null ? '' : String(next))
+    onChange(next)
+  }
+
+  function type(input: string) {
+    setText(input)
+    const parsed = parseCount(input)
+    onChange(parsed !== null && parsed >= min ? parsed : null)
+  }
+
   return (
     <div className="flex items-center justify-center gap-6">
       <button
         type="button"
         aria-label="Less"
         className={`${btn.chip} h-12 w-12 text-2xl`}
-        disabled={value <= min}
-        onClick={() => onChange(value - 1)}
+        disabled={value === null || value <= min}
+        onClick={() => change((value ?? min) - 1)}
       >
         −
       </button>
-      <span className="w-10 text-center text-2xl font-bold">{value}</span>
+      <input
+        aria-label="Count"
+        inputMode="numeric"
+        value={text}
+        onChange={(event) => type(event.target.value)}
+        className="w-20 rounded-xl border border-slate-300 py-2 text-center text-2xl font-bold"
+      />
       <button
         type="button"
         aria-label="More"
         className={`${btn.chip} h-12 w-12 text-2xl`}
-        onClick={() => onChange(value + 1)}
+        onClick={() => change((value ?? min - 1) + 1)}
       >
         +
       </button>

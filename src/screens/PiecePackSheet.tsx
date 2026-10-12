@@ -16,8 +16,8 @@ export function PiecePackSheet({
   onClose: () => void
 }) {
   const [unit, setUnit] = useState<'piece' | 'pack'>('piece')
-  const [count, setCount] = useState(1)
-  const pieces = unit === 'pack' ? count * packSize : count
+  const [count, setCount] = useState<number | null>(1)
+  const pieces = count === null ? 0 : unit === 'pack' ? count * packSize : count
 
   return (
     <Sheet title={product.name} onClose={onClose}>
@@ -38,7 +38,12 @@ export function PiecePackSheet({
         ))}
       </div>
       <Stepper value={count} onChange={setCount} />
-      <button type="button" className={btn.primary} onClick={() => onAdd(pieces)}>
+      <button
+        type="button"
+        className={btn.primary}
+        disabled={count === null}
+        onClick={() => onAdd(pieces)}
+      >
         Add {formatPesos(product.price * pieces)}
       </button>
     </Sheet>
