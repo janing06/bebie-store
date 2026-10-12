@@ -60,9 +60,13 @@ export function MoreScreen() {
     if (!file) return
     setMessage('')
     setError('')
-    const result = parseBackup(await file.text())
-    if (result.ok) setPending(result.backup)
-    else setError(result.error)
+    try {
+      const result = parseBackup(await file.text())
+      if (result.ok) setPending(result.backup)
+      else setError(result.error)
+    } catch (caught) {
+      setError(errorMessage(caught))
+    }
   }
 
   const sales = [...(today?.sales ?? [])].sort((a, b) => b.createdAt.localeCompare(a.createdAt))

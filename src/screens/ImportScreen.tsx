@@ -20,8 +20,12 @@ export function ImportScreen() {
     if (!file) return
     setImported(null)
     setError('')
-    const names = (await db.products.toArray()).map((product) => product.name)
-    setPreview(previewProductsCsv(await file.text(), names))
+    try {
+      const names = (await db.products.toArray()).map((product) => product.name)
+      setPreview(previewProductsCsv(await file.text(), names))
+    } catch (caught) {
+      setError(errorMessage(caught))
+    }
   }
 
   async function runImport() {
