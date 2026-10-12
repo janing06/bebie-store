@@ -77,3 +77,25 @@ test('restores a valid backup after confirming', async () => {
   expect(await screen.findByText('Backup restored.')).toBeInTheDocument()
   expect((await db.products.toArray()).map((product) => product.name)).toEqual(['Pepsi 1L'])
 })
+
+test('warns before restoring an older backup over newer sales', async () => {
+  const other = freshDb()
+  await addProduct(other, sampleProduct({ name: 'Pepsi 1L' }))
+  const backup = await exportBackup(other, new Date('2020-01-01T00:00:00Z'))
+  const coke = await addProduct(db, sampleProduct({ startingStock: 10 }))
+  await checkout(db, { cart: addToCart([], coke, 1), payment: 'cash', cashReceived: 10000 })
+  const user = userEvent.setup()
+  renderMore()
+
+  await user.upload(
+    await screen.findByLabelText('Restore from backup'),
+    jsonFile(JSON.stringify(backup)),
+  )
+
+  expect(
+    await screen.findByText(/This phone has sales newer than this backup. They will be lost./),
+  ).toBeInTheDocument()
+  expect(
+    screen.getByText(/On this phone now: 1 products, 1 sales, 0 customers/),
+  ).toBeInTheDocument()
+})

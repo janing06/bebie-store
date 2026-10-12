@@ -2,6 +2,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { useEffect, useState, type ChangeEvent } from 'react'
 import { Link } from 'wouter'
 import { OWNER, STORE_NAME } from '../brand'
+import { useCart } from '../cart-context'
 import { lastBackupAt, parseBackup, restoreBackup, type BackupFile } from '../data/backup'
 import { salesBetween, voidSale } from '../data/sales'
 import { db, type Sale } from '../db'
@@ -13,7 +14,21 @@ import { btn, errorMessage } from '../ui-kit'
 
 const BACKUP_REMINDER_DAYS = 7
 
+async function restoreMessage(backup: BackupFile): Promise<string> {
+  const [products, sales, customers, newerSales] = await Promise.all([
+    db.products.count(),
+    db.sales.count(),
+    db.customers.count(),
+    db.sales.where('createdAt').above(backup.exportedAt).count(),
+  ])
+  const { tables } = backup
+  const warning =
+    newerSales > 0 ? ' This phone has sales newer than this backup. They will be lost.' : ''
+  return `Backup from ${formatDay(backup.exportedAt)}, ${formatTime(backup.exportedAt)}: ${tables.products.length} products, ${tables.sales.length} sales, ${tables.customers.length} customers. On this phone now: ${products} products, ${sales} sales, ${customers} customers. Everything now on this phone will be replaced.${warning}`
+}
+
 export function MoreScreen() {
+  const { setCart } = useCart()
   const [now] = useState(() => new Date())
   const lastBackup = useLiveQuery(() => lastBackupAt(db), [])
   const today = useLiveQuery(() => {
@@ -25,7 +40,7 @@ export function MoreScreen() {
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
-  const [pending, setPending] = useState<BackupFile | null>(null)
+  const [pending, setPending] = useState<{ backup: BackupFile; message: string } | null>(null)
   const [voiding, setVoiding] = useState<Sale | null>(null)
 
   useEffect(() => {
@@ -62,7 +77,8 @@ export function MoreScreen() {
     setError('')
     try {
       const result = parseBackup(await file.text())
-      if (result.ok) setPending(result.backup)
+      if (result.ok)
+        setPending({ backup: result.backup, message: await restoreMessage(result.backup) })
       else setError(result.error)
     } catch (caught) {
       setError(errorMessage(caught))
@@ -144,11 +160,12 @@ export function MoreScreen() {
       {pending && (
         <ConfirmSheet
           title="Restore this backup?"
-          message={`Backup from ${formatDay(pending.exportedAt)}, ${formatTime(pending.exportedAt)}: ${pending.tables.products.length} products, ${pending.tables.sales.length} sales, ${pending.tables.customers.length} customers. Everything now on this phone will be replaced.`}
+          message={pending.message}
           confirmLabel="Replace and restore"
           danger
           onConfirm={async () => {
-            await restoreBackup(db, pending)
+            await restoreBackup(db, pending.backup)
+            setCart([])
             setMessage('Backup restored.')
           }}
           onClose={() => setPending(null)}
