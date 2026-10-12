@@ -5,7 +5,7 @@ import { isLowStock, matchesSearch, setProductActive } from '../data/products'
 import { db, type Product } from '../db'
 import { formatDay } from '../domain/dates'
 import { formatPesos } from '../money'
-import { Screen } from '../ui'
+import { Notice, Screen } from '../ui'
 import { btn, errorMessage, inputClass } from '../ui-kit'
 
 type Filter = 'all' | 'low' | 'stopped'
@@ -96,25 +96,35 @@ function ActiveRow({ product }: { product: Product }) {
 }
 
 function StoppedRow({ product }: { product: Product }) {
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+
   async function turnOn() {
+    setSaving(true)
     try {
       await setProductActive(db, product.id, true)
     } catch (caught) {
-      window.alert(errorMessage(caught))
+      setError(errorMessage(caught))
     }
+    setSaving(false)
   }
 
   return (
-    <li className="flex items-center justify-between py-3">
+    <li className="flex flex-wrap items-center justify-between py-3">
       <Link href={`/products/${product.id}`} className="opacity-60">
         <b>{product.name}</b>
         <span className="block text-xs text-slate-500">
           stopped {formatDay(product.updatedAt)} · {product.stock} in stock
         </span>
       </Link>
-      <button type="button" className="font-semibold text-brand" onClick={turnOn}>
+      <button type="button" className="font-semibold text-brand" disabled={saving} onClick={turnOn}>
         Turn on
       </button>
+      {error && (
+        <div className="w-full pt-2">
+          <Notice tone="bad">{error}</Notice>
+        </div>
+      )}
     </li>
   )
 }

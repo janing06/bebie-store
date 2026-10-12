@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, expect, test } from 'vitest'
 import { Router } from 'wouter'
@@ -59,4 +59,42 @@ test('warns when the price is below cost but still saves', async () => {
   await user.click(screen.getByRole('button', { name: 'Save changes' }))
   await screen.findByRole('heading', { name: 'Products' })
   expect((await db.products.get(coke.id))?.price).toBe(6000)
+})
+
+test('keeps the restocked cost when saving the form afterwards', async () => {
+  const mami = await addProduct(db, sampleProduct({ price: 900, cost: 800 }))
+  const user = userEvent.setup()
+  renderAt(`/products/${mami.id}`)
+
+  await user.click(await screen.findByRole('button', { name: /Restock/ }))
+  const sheet = await screen.findByRole('dialog')
+  await user.type(within(sheet).getByLabelText(/New cost/), '8.25')
+  await user.click(within(sheet).getByRole('button', { name: 'Add stock' }))
+  await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+
+  await user.click(screen.getByRole('button', { name: 'Save changes' }))
+  await screen.findByRole('heading', { name: 'Products' })
+  expect((await db.products.get(mami.id))?.cost).toBe(825)
+})
+
+test('turns a stopped product on again from its page', async () => {
+  const mami = await addProduct(db, sampleProduct())
+  await db.products.update(mami.id, { active: false })
+  const user = userEvent.setup()
+  renderAt(`/products/${mami.id}`)
+
+  await user.click(await screen.findByRole('button', { name: 'Turn on again' }))
+  await waitFor(async () => expect((await db.products.get(mami.id))?.active).toBe(true))
+})
+
+test('turns a stopped product on from the Stopped list', async () => {
+  const mami = await addProduct(db, sampleProduct({ name: 'Old Item' }))
+  await db.products.update(mami.id, { active: false })
+  const user = userEvent.setup()
+  renderAt('/products')
+
+  await user.click(await screen.findByRole('button', { name: /Stopped/ }))
+  await user.click(await screen.findByRole('button', { name: 'Turn on' }))
+  await waitFor(() => expect(screen.queryByText('Old Item')).not.toBeInTheDocument())
+  expect((await db.products.get(mami.id))?.active).toBe(true)
 })

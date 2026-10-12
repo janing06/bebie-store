@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { adjustStock, costPerPiece, restock } from '../data/stock'
 import { ADJUST_REASONS, db, type AdjustReason, type Product } from '../db'
-import { formatPesos, parseCount, parsePesos } from '../money'
+import { formatPesos, parseCount, parsePesos, type Centavos } from '../money'
 import { Field, Notice, Sheet, Stepper } from '../ui'
 import { btn, errorMessage, inputClass } from '../ui-kit'
 
@@ -12,7 +12,15 @@ const REASON_LABELS: Record<AdjustReason, string> = {
   family: 'Family use',
 }
 
-export function RestockSheet({ product, onClose }: { product: Product; onClose: () => void }) {
+export function RestockSheet({
+  product,
+  onClose,
+  onCostSaved,
+}: {
+  product: Product
+  onClose: () => void
+  onCostSaved?: (costPerPiece: Centavos) => void
+}) {
   const packSize = product.packSize
   const [unit, setUnit] = useState<'piece' | 'pack'>(packSize ? 'pack' : 'piece')
   const [count, setCount] = useState(1)
@@ -37,6 +45,7 @@ export function RestockSheet({ product, onClose }: { product: Product; onClose: 
     setSaving(true)
     try {
       await restock(db, product.id, pieces, newCostPerPiece)
+      if (newCostPerPiece !== null) onCostSaved?.(newCostPerPiece)
       onClose()
     } catch (caught) {
       setError(errorMessage(caught))

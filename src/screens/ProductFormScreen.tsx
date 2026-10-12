@@ -73,6 +73,17 @@ function ProductEditor({ product, products }: { product?: Product; products: Pro
     return inputClass(changed(field) ? 'changed' : null)
   }
 
+  async function turnOnAgain() {
+    if (!product) return
+    setSaving(true)
+    try {
+      await setProductActive(db, product.id, true)
+    } catch (caught) {
+      setSaveError(errorMessage(caught))
+    }
+    setSaving(false)
+  }
+
   async function save() {
     const result = parseProductForm(form)
     if (!result.ok) {
@@ -220,17 +231,19 @@ function ProductEditor({ product, products }: { product?: Product; products: Pro
         </button>
       )}
       {product && !product.active && (
-        <button
-          type="button"
-          className={btn.ghost}
-          onClick={() => void setProductActive(db, product.id, true)}
-        >
+        <button type="button" className={btn.ghost} disabled={saving} onClick={turnOnAgain}>
           Turn on again
         </button>
       )}
 
       {product && sheet === 'restock' && (
-        <RestockSheet product={product} onClose={() => setSheet(null)} />
+        <RestockSheet
+          product={product}
+          onClose={() => setSheet(null)}
+          onCostSaved={(newCost) =>
+            setForm((current) => ({ ...current, cost: toPesosInput(newCost) }))
+          }
+        />
       )}
       {product && sheet === 'adjust' && (
         <AdjustSheet product={product} onClose={() => setSheet(null)} />
