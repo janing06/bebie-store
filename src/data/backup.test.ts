@@ -136,6 +136,55 @@ describe('parseBackup rejects bad files', () => {
     expectRejected(data, /does not match its history/)
   })
 
+  test('duplicate ids', async () => {
+    const data = await validJson()
+    const products = (data.tables as { products: Record<string, unknown>[] }).products
+    products.push({ ...products[0] })
+    expectRejected(data, /products has two rows with the same id/)
+  })
+
+  test('unknown payment type', async () => {
+    const data = await validJson()
+    ;(data.tables as { sales: Record<string, unknown>[] }).sales[0].payment = 'card'
+    expectRejected(data, /unknown payment type/)
+  })
+
+  test('sale pointing to a missing customer', async () => {
+    const data = await validJson()
+    ;(data.tables as { sales: Record<string, unknown>[] }).sales[0].customerId = 'gone'
+    expectRejected(data, /Sale .* points to a missing customer/)
+  })
+
+  test('unknown stock reason', async () => {
+    const data = await validJson()
+    ;(data.tables as { stockMoves: Record<string, unknown>[] }).stockMoves[0].reason = 'magic'
+    expectRejected(data, /unknown reason/)
+  })
+
+  test('stock move pointing to a missing product', async () => {
+    const data = await validJson()
+    ;(data.tables as { stockMoves: Record<string, unknown>[] }).stockMoves[0].productId = 'gone'
+    expectRejected(data, /missing product or sale/)
+  })
+
+  test('payment pointing to a missing customer', async () => {
+    const data = await validJson()
+    ;(data.tables as { payments: Record<string, unknown>[] }).payments[0].customerId = 'gone'
+    expectRejected(data, /Payment .* points to a missing customer/)
+  })
+
+  test('row that is not an object', async () => {
+    const data = await validJson()
+    ;(data.tables as { products: unknown[] }).products = [42]
+    expectRejected(data, /products row 1: "row"/)
+  })
+
+  test('missing tables object', async () => {
+    const data = await validJson()
+    delete data.tables
+    expectRejected(data, /incomplete/)
+  })
+
   test('a rejected file leaves current data untouched', async () => {
     const db = freshDb()
     await seed(db)
@@ -147,6 +196,20 @@ describe('parseBackup rejects bad files', () => {
     if (result.ok) await restoreBackup(db, result.backup)
 
     expect(result.ok).toBe(false)
+    expect(await exportBackup(db, NOW)).toEqual(before)
+  })
+})
+
+describe('restoreBackup', () => {
+  test('a failed restore leaves current data untouched', async () => {
+    const db = freshDb()
+    await seed(db)
+    const before = await exportBackup(db, NOW)
+    const broken = structuredClone(before)
+    broken.tables.products.push({ ...broken.tables.products[0] })
+
+    await expect(restoreBackup(db, broken)).rejects.toThrow()
+
     expect(await exportBackup(db, NOW)).toEqual(before)
   })
 })

@@ -161,7 +161,26 @@ export function parseBackup(text: string): ParsedBackup {
   return problem ? fail(problem) : { ok: true, backup }
 }
 
+function findDuplicateKey(tables: BackupTables): string | null {
+  for (const [table, rows] of Object.entries(tables) as [
+    keyof BackupTables,
+    { id?: string; key?: string }[],
+  ][]) {
+    const field = table === 'settings' ? 'key' : 'id'
+    const seen = new Set<string>()
+    for (const row of rows) {
+      const value = String(row[field])
+      if (seen.has(value)) return `${table} has two rows with the same ${field}: ${value}.`
+      seen.add(value)
+    }
+  }
+  return null
+}
+
 function findDataProblem(tables: BackupTables): string | null {
+  const duplicate = findDuplicateKey(tables)
+  if (duplicate) return duplicate
+
   const productIds = new Set(tables.products.map((p) => p.id))
   const saleIds = new Set(tables.sales.map((s) => s.id))
   const customerIds = new Set(tables.customers.map((c) => c.id))
