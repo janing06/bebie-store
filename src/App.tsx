@@ -1,5 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Route, Switch } from 'wouter'
+import { CartProvider } from './CartProvider'
+import { CheckoutScreen } from './screens/CheckoutScreen'
+import { SaleSavedScreen } from './screens/SaleSavedScreen'
+import { SellScreen } from './screens/SellScreen'
 import { Splash } from './Splash'
 import { Screen } from './ui'
 
@@ -7,13 +11,18 @@ const SPLASH_MS = 1200
 
 export function AppRoutes() {
   return (
-    <Switch>
-      <Route>
-        <Screen title="Not found" back>
-          <p className="text-slate-600">This page does not exist.</p>
-        </Screen>
-      </Route>
-    </Switch>
+    <CartProvider>
+      <Switch>
+        <Route path="/" component={SellScreen} />
+        <Route path="/checkout" component={CheckoutScreen} />
+        <Route path="/sold/:id" component={SaleSavedScreen} />
+        <Route>
+          <Screen title="Not found" back>
+            <p className="text-slate-600">This page does not exist.</p>
+          </Screen>
+        </Route>
+      </Switch>
+    </CartProvider>
   )
 }
 
