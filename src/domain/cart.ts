@@ -49,7 +49,15 @@ export function changeDue(total: Centavos, received: Centavos): Centavos | null 
 
 const PESO_DENOMINATIONS: Centavos[] = [100, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000]
 
+// Two ways a customer might pay, for each denomination d:
+// 1. round the total up to the next multiple of d;
+// 2. hand over the bills of d that fit in the total, plus the smallest single
+//    bill or coin that tops it over.
 export function suggestCashAmounts(total: Centavos): Centavos[] {
-  const roundedUp = PESO_DENOMINATIONS.map((d) => Math.ceil(total / d) * d)
-  return [...new Set(roundedUp)].filter((amount) => amount > total).sort((a, b) => a - b)
+  const amounts = PESO_DENOMINATIONS.flatMap((d) => {
+    const base = Math.floor(total / d) * d
+    const topUp = total > base ? PESO_DENOMINATIONS.find((e) => base + e > total) : undefined
+    return [Math.ceil(total / d) * d, ...(topUp === undefined ? [] : [base + topUp])]
+  })
+  return [...new Set(amounts)].filter((amount) => amount > total).sort((a, b) => a - b)
 }

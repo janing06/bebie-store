@@ -49,6 +49,12 @@ describe('cart', () => {
     [12.5, [13, 15, 20, 50, 100, 200, 500, 1000]],
     [1000, []],
     [0, []],
+    [60, [70, 100, 200, 500, 1000]],
+    [260, [270, 300, 400, 500, 1000]],
+    [460, [470, 500, 600, 1000]],
+    [75, [80, 100, 200, 500, 1000]],
+    [100, [200, 500, 1000]],
+    [999, [1000]],
   ])('suggestCashAmounts for ₱%s', (totalPesos, expectedPesos) => {
     expect(suggestCashAmounts(Math.round(totalPesos * 100))).toEqual(
       expectedPesos.map((pesos) => pesos * 100),
