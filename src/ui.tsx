@@ -1,4 +1,12 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import {
+  cloneElement,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type ReactElement,
+  type ReactNode,
+} from 'react'
 import {
   ChartColumn,
   ChevronLeft,
@@ -12,8 +20,10 @@ import {
   X,
 } from 'lucide-react'
 import { Link, useLocation } from 'wouter'
+import type { FieldHelp } from './field-help'
 import { parseCount } from './money'
 import { btn, errorMessage, inputClass } from './ui-kit'
+import { useFieldHelp } from './use-field-help'
 
 const TABS = [
   { href: '/', label: 'Sell', Icon: Store },
@@ -176,20 +186,34 @@ export function Field({
   label,
   error,
   hint,
+  help,
   children,
 }: {
   label: string
   error?: string
   hint?: string
-  children: ReactNode
+  help?: FieldHelp
+  children: ReactElement<{ id?: string }>
 }) {
+  const inputId = useId()
+  const { button } = useFieldHelp(label, help)
   return (
-    <label className="flex flex-col gap-1">
-      <span className="text-xs font-semibold tracking-wide text-slate-500 uppercase">{label}</span>
-      {children}
+    <div className="flex flex-col gap-1">
+      <div className="flex items-center text-xs font-semibold tracking-wide text-slate-500 uppercase">
+        <label htmlFor={inputId}>
+          {label.replace(/\s*\*$/, '')}
+          {label.endsWith('*') && (
+            <span aria-hidden="true" className="text-red-600">
+              {' *'}
+            </span>
+          )}
+        </label>
+        {button}
+      </div>
+      {cloneElement(children, { id: inputId })}
       {hint && <span className="text-xs font-semibold text-brand">{hint}</span>}
       {error && <span className="text-xs text-red-600">{error}</span>}
-    </label>
+    </div>
   )
 }
 

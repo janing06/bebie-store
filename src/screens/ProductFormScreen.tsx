@@ -12,8 +12,10 @@ import {
 } from '../data/products'
 import { db, type Product } from '../db'
 import { formatPesos, parsePesos, toPesosInput } from '../money'
+import { FIELD_HELP } from '../field-help'
 import { ConfirmSheet, Field, Notice, Screen } from '../ui'
 import { btn, errorMessage, inputClass } from '../ui-kit'
+import { useFieldHelp } from '../use-field-help'
 import type { FieldErrors } from '../validation'
 import { AdjustSheet, RestockSheet } from './StockSheets'
 
@@ -53,6 +55,7 @@ function ProductEditor({ product, products }: { product?: Product; products: Pro
   const [saveError, setSaveError] = useState('')
   const [saving, setSaving] = useState(false)
   const [sheet, setSheet] = useState<'restock' | 'adjust' | 'stop' | null>(null)
+  const favoriteHelp = useFieldHelp('Show in favorites', FIELD_HELP.favorite)
 
   const editing = product !== undefined
   const similar = editing ? [] : findSimilar(products, form.name)
@@ -128,7 +131,7 @@ function ProductEditor({ product, products }: { product?: Product; products: Pro
         </div>
       )}
 
-      <Field label="Name *" error={errors.name}>
+      <Field label="Name *" error={errors.name} help={FIELD_HELP.name}>
         <input value={form.name} onChange={update('name')} className={highlight('name')} />
       </Field>
       {similar.length > 0 && (
@@ -154,6 +157,7 @@ function ProductEditor({ product, products }: { product?: Product; products: Pro
         <Field
           label="Price ₱ *"
           error={errors.price}
+          help={FIELD_HELP.price}
           hint={changed('price') && product ? `was ${formatPesos(product.price)}` : undefined}
         >
           <input
@@ -166,6 +170,7 @@ function ProductEditor({ product, products }: { product?: Product; products: Pro
         <Field
           label="Cost ₱"
           error={errors.cost}
+          help={FIELD_HELP.cost}
           hint={
             changed('cost') && product?.cost != null
               ? `was ${formatPesos(product.cost)}`
@@ -194,7 +199,11 @@ function ProductEditor({ product, products }: { product?: Product; products: Pro
 
       <div className={editing ? 'grid' : 'grid grid-cols-2 gap-2'}>
         {!editing && (
-          <Field label="Starting stock" error={errors.startingStock}>
+          <Field
+            label="Starting stock"
+            error={errors.startingStock}
+            help={FIELD_HELP.startingStock}
+          >
             <input
               value={form.startingStock}
               inputMode="numeric"
@@ -203,7 +212,7 @@ function ProductEditor({ product, products }: { product?: Product; products: Pro
             />
           </Field>
         )}
-        <Field label="Low stock at" error={errors.lowStockAt}>
+        <Field label="Low stock at" error={errors.lowStockAt} help={FIELD_HELP.lowStockAt}>
           <input
             value={form.lowStockAt}
             inputMode="numeric"
@@ -212,7 +221,7 @@ function ProductEditor({ product, products }: { product?: Product; products: Pro
           />
         </Field>
       </div>
-      <Field label="Pack size (optional)" error={errors.packSize}>
+      <Field label="Pack size (optional)" error={errors.packSize} help={FIELD_HELP.packSize}>
         <input
           value={form.packSize}
           inputMode="numeric"
@@ -221,18 +230,24 @@ function ProductEditor({ product, products }: { product?: Product; products: Pro
           className={highlight('packSize')}
         />
       </Field>
-      <label className="flex min-h-12 items-center justify-between py-1">
-        <span className="flex items-center gap-2">
-          <Star aria-hidden size={20} />
-          Show in favorites
-        </span>
-        <input
-          type="checkbox"
-          checked={form.favorite}
-          onChange={update('favorite')}
-          className="relative h-7 w-12 shrink-0 cursor-pointer appearance-none rounded-full bg-slate-300 transition-colors before:absolute before:top-0.5 before:left-0.5 before:h-6 before:w-6 before:rounded-full before:bg-white before:shadow before:transition-transform before:content-[''] checked:bg-brand checked:before:translate-x-5"
-        />
-      </label>
+      <div>
+        <div className="flex min-h-12 items-center justify-between py-1">
+          <div className="flex flex-1 items-center">
+            <label htmlFor="favorite" className="flex items-center gap-2">
+              <Star aria-hidden size={20} />
+              Show in favorites
+            </label>
+            {favoriteHelp.button}
+          </div>
+          <input
+            id="favorite"
+            type="checkbox"
+            checked={form.favorite}
+            onChange={update('favorite')}
+            className="relative h-7 w-12 shrink-0 cursor-pointer appearance-none rounded-full bg-slate-300 transition-colors before:absolute before:top-0.5 before:left-0.5 before:h-6 before:w-6 before:rounded-full before:bg-white before:shadow before:transition-transform before:content-[''] checked:bg-brand checked:before:translate-x-5"
+          />
+        </div>
+      </div>
 
       {saveError && <Notice tone="bad">{saveError}</Notice>}
       <button type="button" className={`${btn.primary} mt-auto`} disabled={saving} onClick={save}>

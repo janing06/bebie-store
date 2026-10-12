@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { EMPTY_PRODUCT_FORM, addProduct, parseProductForm } from '../data/products'
 import { db, type Product } from '../db'
+import { FIELD_HELP } from '../field-help'
 import { Field, Notice, Sheet } from '../ui'
 import { btn, errorMessage, inputClass } from '../ui-kit'
 import type { FieldErrors } from '../validation'
@@ -40,10 +41,10 @@ export function QuickAddSheet({
       <p className="text-sm text-slate-600">
         Adds the product with stock 0. Count it later in Products.
       </p>
-      <Field label="Name" error={errors.name}>
+      <Field label="Name" error={errors.name} help={FIELD_HELP.name}>
         <input value={name} onChange={(e) => setName(e.target.value)} className={inputClass()} />
       </Field>
-      <Field label="Price ₱" error={errors.price}>
+      <Field label="Price ₱" error={errors.price} help={FIELD_HELP.price}>
         <input
           value={price}
           inputMode="decimal"
