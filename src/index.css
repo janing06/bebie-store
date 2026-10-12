@@ -1,0 +1,11 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-brand: #0f766e;
+  --color-brand-soft: #f0fdfa;
+}
+
+html,
+body {
+  overscroll-behavior: none;
+}
