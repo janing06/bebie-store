@@ -5,6 +5,7 @@ import { CheckoutScreen } from './screens/CheckoutScreen'
 import { CustomerScreen } from './screens/CustomerScreen'
 import { ProductFormScreen } from './screens/ProductFormScreen'
 import { ProductsScreen } from './screens/ProductsScreen'
+import { ReportsScreen } from './screens/ReportsScreen'
 import { SaleSavedScreen } from './screens/SaleSavedScreen'
 import { SellScreen } from './screens/SellScreen'
 import { UtangScreen } from './screens/UtangScreen'
@@ -25,6 +26,7 @@ export function AppRoutes() {
         <Route path="/products/:id" component={ProductFormScreen} />
         <Route path="/utang" component={UtangScreen} />
         <Route path="/utang/:id" component={CustomerScreen} />
+        <Route path="/reports" component={ReportsScreen} />
         <Route>
           <Screen title="Not found" back>
             <p className="text-slate-600">This page does not exist.</p>
