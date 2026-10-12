@@ -1,3 +1,29 @@
+import { useEffect, useState } from 'react'
+import { Route, Switch } from 'wouter'
+import { Splash } from './Splash'
+import { Screen } from './ui'
+
+const SPLASH_MS = 1200
+
+export function AppRoutes() {
+  return (
+    <Switch>
+      <Route>
+        <Screen title="Not found" back>
+          <p className="text-slate-600">This page does not exist.</p>
+        </Screen>
+      </Route>
+    </Switch>
+  )
+}
+
 export function App() {
-  return <p className="p-4 font-bold text-brand">Bebie's Store</p>
+  const [showSplash, setShowSplash] = useState(true)
+
+  useEffect(() => {
+    const timer = setTimeout(() => setShowSplash(false), SPLASH_MS)
+    return () => clearTimeout(timer)
+  }, [])
+
+  return showSplash ? <Splash /> : <AppRoutes />
 }
