@@ -138,3 +138,51 @@ test('double-tapping New customer creates only one customer', async () => {
   expect(await db.customers.count()).toBe(1)
   expect(await db.sales.count()).toBe(1)
 })
+
+test('clearing the cart empties it, returns to Sell and writes nothing', async () => {
+  const coke = await addProduct(db, sampleProduct({ favorite: true, startingStock: 10 }))
+  const user = userEvent.setup()
+  renderApp()
+
+  await user.click(await screen.findByRole('button', { name: /Coke 1\.5L/ }))
+  await user.click(screen.getByRole('link', { name: /1 item/ }))
+  await user.click(screen.getByRole('button', { name: 'Clear cart' }))
+  const sheet = screen.getByRole('dialog', { name: 'Clear cart?' })
+  expect(within(sheet).getByText('1 item will be removed.')).toBeInTheDocument()
+  await user.click(within(sheet).getByRole('button', { name: 'Clear cart' }))
+
+  expect(await screen.findByRole('button', { name: /Coke 1\.5L/ })).toBeInTheDocument()
+  expect(screen.queryByRole('link', { name: /item/ })).not.toBeInTheDocument()
+  expect(await db.sales.count()).toBe(0)
+  expect((await db.products.get(coke.id))?.stock).toBe(10)
+})
+
+test('cancelling Clear cart keeps the cart', async () => {
+  await addProduct(db, sampleProduct({ favorite: true, startingStock: 10 }))
+  const user = userEvent.setup()
+  renderApp()
+
+  await user.click(await screen.findByRole('button', { name: /Coke 1\.5L/ }))
+  await user.click(screen.getByRole('link', { name: /1 item/ }))
+  await user.click(screen.getByRole('button', { name: 'Clear cart' }))
+  await user.click(screen.getByRole('button', { name: 'Cancel' }))
+
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  expect(screen.getByRole('button', { name: 'Remove Coke 1.5L' })).toBeInTheDocument()
+})
+
+test('a qty-1 line offers Remove and a qty-2 line offers Less', async () => {
+  await addProduct(db, sampleProduct({ favorite: true, startingStock: 10 }))
+  const user = userEvent.setup()
+  renderApp()
+
+  await user.click(await screen.findByRole('button', { name: /Coke 1\.5L/ }))
+  await user.click(screen.getByRole('button', { name: /Coke 1\.5L/ }))
+  await user.click(screen.getByRole('link', { name: /1 item/ }))
+  expect(screen.getByRole('button', { name: 'Less Coke 1.5L' })).toBeInTheDocument()
+
+  await user.click(screen.getByRole('button', { name: 'Less Coke 1.5L' }))
+  await user.click(screen.getByRole('button', { name: 'Remove Coke 1.5L' }))
+
+  expect(screen.getByText('The cart is empty.')).toBeInTheDocument()
+})

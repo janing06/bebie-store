@@ -1,12 +1,12 @@
-import { Check, Minus, Plus } from 'lucide-react'
+import { Check, Minus, Plus, Trash2 } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { Link, useLocation } from 'wouter'
 import { useCart } from '../cart-context'
 import { checkout, type CheckoutInput } from '../data/sales'
 import { db } from '../db'
 import { cartTotal, changeDue, setQty } from '../domain/cart'
-import { formatPesos, parsePesos, type Centavos } from '../money'
-import { Field, Notice, Screen } from '../ui'
+import { formatPesos, parsePesos, pluralize, type Centavos } from '../money'
+import { ConfirmSheet, Field, Notice, Screen } from '../ui'
 import { btn, errorMessage, inputClass } from '../ui-kit'
 import { CustomerPickerSheet } from './CustomerPickerSheet'
 
@@ -18,6 +18,7 @@ export function CheckoutScreen() {
   const [received, setReceived] = useState<Centavos | null>(null)
   const [otherText, setOtherText] = useState<string | null>(null)
   const [pickingCustomer, setPickingCustomer] = useState(false)
+  const [clearing, setClearing] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   // A ref, not state: two taps in the same frame both see the old state value.
@@ -56,7 +57,20 @@ export function CheckoutScreen() {
   }
 
   return (
-    <Screen title="Cart" back>
+    <Screen
+      title="Cart"
+      back
+      action={
+        <button
+          type="button"
+          aria-label="Clear cart"
+          className="flex h-11 w-11 select-none items-center justify-center transition active:opacity-60"
+          onClick={() => setClearing(true)}
+        >
+          <Trash2 aria-hidden size={24} />
+        </button>
+      }
+    >
       <ul className="divide-y divide-slate-100">
         {cart.map((line) => (
           <li key={line.productId} className="flex items-center justify-between gap-2 py-2">
@@ -64,11 +78,15 @@ export function CheckoutScreen() {
             <span className="flex items-center gap-2">
               <button
                 type="button"
-                aria-label={`Less ${line.name}`}
+                aria-label={`${line.qty === 1 ? 'Remove' : 'Less'} ${line.name}`}
                 className={btn.chip}
                 onClick={() => setCart(setQty(cart, line.productId, line.qty - 1))}
               >
-                <Minus aria-hidden size={20} />
+                {line.qty === 1 ? (
+                  <Trash2 aria-hidden size={20} />
+                ) : (
+                  <Minus aria-hidden size={20} />
+                )}
               </button>
               <span className="w-8 text-center font-semibold">{line.qty}</span>
               <button
@@ -161,6 +179,20 @@ export function CheckoutScreen() {
           <Check aria-hidden size={20} />
         </button>
       </div>
+
+      {clearing && (
+        <ConfirmSheet
+          title="Clear cart?"
+          message={`${pluralize(cart.length, 'item')} will be removed.`}
+          confirmLabel="Clear cart"
+          danger
+          onConfirm={async () => {
+            setCart([])
+            navigate('/', { replace: true })
+          }}
+          onClose={() => setClearing(false)}
+        />
+      )}
 
       {pickingCustomer && (
         <CustomerPickerSheet
