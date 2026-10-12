@@ -92,6 +92,7 @@ export function SellScreen() {
   const shown = searching
     ? active.filter((product) => matchesSearch(product.name, search))
     : favorites
+  const others = active.filter((product) => !product.favorite)
   const canArrange = !searching && favorites.length >= 2
   const todayTotal = today ? summarize(today.sales, today.items).salesTotal : 0
 
@@ -203,8 +204,29 @@ export function SellScreen() {
       )}
       {!searching && shown.length === 0 && (
         <p className="text-sm text-slate-500">
-          No favorites yet. Search for a product, or turn on "Show in favorites" in Products.
+          No favorites yet. Turn on "Show in favorites" in Products.
         </p>
+      )}
+      {!searching && !arranging && others.length > 0 && (
+        <>
+          <p className="text-xs font-semibold tracking-wide text-slate-500">ALL PRODUCTS</p>
+          <div className="divide-y divide-slate-200">
+            {others.map((product) => (
+              <button
+                key={product.id}
+                type="button"
+                onClick={() => choose(product)}
+                className="flex min-h-12 w-full select-none items-center justify-between gap-2 px-1 text-left transition active:bg-slate-100"
+              >
+                <span className="font-semibold">{product.name}</span>
+                <span className="font-semibold text-brand">
+                  {formatPesos(product.price)}
+                  {product.packSize ? '/pc' : ''}
+                </span>
+              </button>
+            ))}
+          </div>
+        </>
       )}
       {picking?.packSize && (
         <PiecePackSheet

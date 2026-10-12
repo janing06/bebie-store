@@ -88,3 +88,38 @@ test('renders favorites in the saved order', async () => {
   await screen.findByRole('button', { name: /Coke 1\.5L/ })
   await waitFor(() => expect(tileNames()).toEqual(['Ice', 'Coke 1.5L']))
 })
+
+async function seedMixed() {
+  await addProduct(db, sampleProduct({ favorite: true }))
+  await addProduct(db, sampleProduct({ name: 'Ice', favorite: true }))
+  await addProduct(db, sampleProduct({ name: 'Yelo', favorite: false }))
+}
+
+test('lists non-favorites under ALL PRODUCTS, not favorites', async () => {
+  await seedMixed()
+  renderApp()
+
+  expect(await screen.findByText('ALL PRODUCTS')).toBeInTheDocument()
+  expect(screen.getAllByRole('button', { name: /Yelo/ })).toHaveLength(1)
+  expect(screen.getAllByRole('button', { name: /Coke 1\.5L/ })).toHaveLength(1)
+})
+
+test('tapping an ALL PRODUCTS row adds it to the cart', async () => {
+  await seedMixed()
+  const user = userEvent.setup()
+  renderApp()
+
+  await user.click(await screen.findByRole('button', { name: /Yelo/ }))
+
+  expect(await screen.findByRole('link', { name: /1 item/ })).toBeInTheDocument()
+})
+
+test('hides ALL PRODUCTS while arranging', async () => {
+  await seedMixed()
+  const user = userEvent.setup()
+  renderApp()
+
+  await user.click(await screen.findByRole('button', { name: 'Arrange' }))
+
+  expect(screen.queryByText('ALL PRODUCTS')).not.toBeInTheDocument()
+})
