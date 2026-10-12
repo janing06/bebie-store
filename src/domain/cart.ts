@@ -51,13 +51,22 @@ const PESO_DENOMINATIONS: Centavos[] = [100, 500, 1000, 2000, 5000, 10000, 20000
 
 // Two ways a customer might pay, for each denomination d:
 // 1. round the total up to the next multiple of d;
-// 2. hand over the bills of d that fit in the total, plus the smallest single
-//    bill or coin that tops it over.
+// 2. hand over the bills of d that fit in the total, plus the smallest count of
+//    any smaller denomination e that covers the remainder.
+// Part 2 is capped at the smallest single bill that covers the total (`cover`),
+// so we never suggest a combination when one bill already does the job.
 export function suggestCashAmounts(total: Centavos): Centavos[] {
+  const cover = PESO_DENOMINATIONS.find((d) => d >= total)
   const amounts = PESO_DENOMINATIONS.flatMap((d) => {
     const base = Math.floor(total / d) * d
-    const topUp = total > base ? PESO_DENOMINATIONS.find((e) => base + e > total) : undefined
-    return [Math.ceil(total / d) * d, ...(topUp === undefined ? [] : [base + topUp])]
+    const remainder = total - base
+    const combos =
+      remainder > 0
+        ? PESO_DENOMINATIONS.filter((e) => e < d)
+            .map((e) => base + Math.ceil(remainder / e) * e)
+            .filter((amount) => cover === undefined || amount <= cover)
+        : []
+    return [Math.ceil(total / d) * d, ...combos]
   })
   return [...new Set(amounts)].filter((amount) => amount > total).sort((a, b) => a - b)
 }
