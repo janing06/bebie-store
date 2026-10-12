@@ -3,6 +3,8 @@ import { Route, Switch } from 'wouter'
 import { CartProvider } from './CartProvider'
 import { CheckoutScreen } from './screens/CheckoutScreen'
 import { CustomerScreen } from './screens/CustomerScreen'
+import { ImportScreen } from './screens/ImportScreen'
+import { MoreScreen } from './screens/MoreScreen'
 import { ProductFormScreen } from './screens/ProductFormScreen'
 import { ProductsScreen } from './screens/ProductsScreen'
 import { ReportsScreen } from './screens/ReportsScreen'
@@ -27,6 +29,8 @@ export function AppRoutes() {
         <Route path="/utang" component={UtangScreen} />
         <Route path="/utang/:id" component={CustomerScreen} />
         <Route path="/reports" component={ReportsScreen} />
+        <Route path="/more" component={MoreScreen} />
+        <Route path="/import" component={ImportScreen} />
         <Route>
           <Screen title="Not found" back>
             <p className="text-slate-600">This page does not exist.</p>
