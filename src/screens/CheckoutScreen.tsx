@@ -4,13 +4,11 @@ import { Link, useLocation } from 'wouter'
 import { useCart } from '../cart-context'
 import { checkout, type CheckoutInput } from '../data/sales'
 import { db } from '../db'
-import { cartTotal, changeDue, setQty } from '../domain/cart'
+import { cartTotal, changeDue, setQty, suggestCashAmounts } from '../domain/cart'
 import { formatPesos, parsePesos, pluralize, type Centavos } from '../money'
 import { ConfirmSheet, Field, Notice, Screen } from '../ui'
 import { btn, errorMessage, inputClass } from '../ui-kit'
 import { CustomerPickerSheet } from './CustomerPickerSheet'
-
-const BILLS: Centavos[] = [10000, 20000, 50000, 100000]
 
 export function CheckoutScreen() {
   const { cart, setCart } = useCart()
@@ -37,7 +35,7 @@ export function CheckoutScreen() {
 
   const total = cartTotal(cart)
   const change = received === null ? null : changeDue(total, received)
-  const quickAmounts = [total, ...BILLS.filter((bill) => bill > total)]
+  const quickAmounts = [total, ...suggestCashAmounts(total)]
 
   async function finish(input: CheckoutInput) {
     if (savingRef.current) return

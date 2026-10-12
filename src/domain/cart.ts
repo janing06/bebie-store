@@ -46,3 +46,10 @@ export function cartTotal(cart: Cart): Centavos {
 export function changeDue(total: Centavos, received: Centavos): Centavos | null {
   return received >= total ? received - total : null
 }
+
+const PESO_DENOMINATIONS: Centavos[] = [100, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000]
+
+export function suggestCashAmounts(total: Centavos): Centavos[] {
+  const roundedUp = PESO_DENOMINATIONS.map((d) => Math.ceil(total / d) * d)
+  return [...new Set(roundedUp)].filter((amount) => amount > total).sort((a, b) => a - b)
+}
