@@ -247,7 +247,6 @@ function ProductEditor({ product, products }: { product?: Product; products: Pro
             className="relative h-7 w-12 shrink-0 cursor-pointer appearance-none rounded-full bg-slate-300 transition-colors before:absolute before:top-0.5 before:left-0.5 before:h-6 before:w-6 before:rounded-full before:bg-white before:shadow before:transition-transform before:content-[''] checked:bg-brand checked:before:translate-x-5"
           />
         </div>
-        {favoriteHelp.box}
       </div>
 
       {saveError && <Notice tone="bad">{saveError}</Notice>}

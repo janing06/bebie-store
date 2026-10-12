@@ -196,14 +196,13 @@ export function Field({
   children: ReactElement<{ id?: string }>
 }) {
   const inputId = useId()
-  const { button, box } = useFieldHelp(label, help)
+  const { button } = useFieldHelp(label, help)
   return (
     <div className="flex flex-col gap-1">
       <div className="flex items-center text-xs font-semibold tracking-wide text-slate-500 uppercase">
         <label htmlFor={inputId}>{label}</label>
         {button}
       </div>
-      {box}
       {cloneElement(children, { id: inputId })}
       {hint && <span className="text-xs font-semibold text-brand">{hint}</span>}
       {error && <span className="text-xs text-red-600">{error}</span>}
