@@ -81,3 +81,36 @@ test('double-tapping Done saves only one sale', async () => {
   expect(await screen.findByText('Sale saved')).toBeInTheDocument()
   expect(await db.sales.count()).toBe(1)
 })
+
+test('a failed utang checkout closes the picker and shows the error', async () => {
+  const coke = await addProduct(db, sampleProduct({ favorite: true }))
+  await addCustomer(db, 'Aling Nena', '')
+  const user = userEvent.setup()
+  renderApp()
+
+  await user.click(await screen.findByRole('button', { name: /Coke 1\.5L/ }))
+  await db.products.delete(coke.id)
+  await user.click(screen.getByRole('link', { name: /1 item/ }))
+  await user.click(screen.getByRole('button', { name: 'Utang' }))
+  await user.click(await screen.findByRole('button', { name: /Aling Nena/ }))
+
+  expect(await screen.findByText(/Not saved\. Please try again\./)).toBeInTheDocument()
+  expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  expect(await db.sales.count()).toBe(0)
+})
+
+test('double-tapping New customer creates only one customer', async () => {
+  await addProduct(db, sampleProduct({ favorite: true }))
+  const user = userEvent.setup()
+  renderApp()
+
+  await user.click(await screen.findByRole('button', { name: /Coke 1\.5L/ }))
+  await user.click(screen.getByRole('link', { name: /1 item/ }))
+  await user.click(screen.getByRole('button', { name: 'Utang' }))
+  await user.type(await screen.findByPlaceholderText(/Name/), 'Kuya Boy')
+  await user.dblClick(screen.getByRole('button', { name: /New customer/ }))
+
+  expect(await screen.findByText('Sale saved')).toBeInTheDocument()
+  expect(await db.customers.count()).toBe(1)
+  expect(await db.sales.count()).toBe(1)
+})

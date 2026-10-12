@@ -47,6 +47,7 @@ export function CheckoutScreen() {
       navigate(`/sold/${sale.id}`, { replace: true })
       setCart([])
     } catch (caught) {
+      setPickingCustomer(false)
       setError(errorMessage(caught))
       savingRef.current = false
       setSaving(false)

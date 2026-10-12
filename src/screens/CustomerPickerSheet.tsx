@@ -1,5 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { matchesSearch } from '../data/products'
 import { addCustomer } from '../data/utang'
 import { db } from '../db'
@@ -16,16 +16,24 @@ export function CustomerPickerSheet({
   const customers = useLiveQuery(() => db.customers.orderBy('name').toArray(), [])
   const [search, setSearch] = useState('')
   const [error, setError] = useState('')
+  const [busy, setBusy] = useState(false)
+  // A ref, not state: two taps in the same frame both see the old state value.
+  const busyRef = useRef(false)
   const shown = (customers ?? []).filter(
     (customer) => customer.active && matchesSearch(customer.name, search),
   )
 
   async function addAndPick() {
+    if (busyRef.current) return
+    busyRef.current = true
+    setBusy(true)
     try {
       const customer = await addCustomer(db, search, '')
       onPick(customer.id)
     } catch (caught) {
       setError(errorMessage(caught))
+      busyRef.current = false
+      setBusy(false)
     }
   }
 
@@ -54,7 +62,7 @@ export function CustomerPickerSheet({
         ))}
       </div>
       {search.trim() !== '' && (
-        <button type="button" className={btn.ghost} onClick={addAndPick}>
+        <button type="button" className={btn.ghost} disabled={busy} onClick={addAndPick}>
           ＋ New customer "{search.trim()}"
         </button>
       )}
