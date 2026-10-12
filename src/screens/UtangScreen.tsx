@@ -53,8 +53,8 @@ export function UtangScreen() {
       </ul>
       {all.length === 0 && (
         <p className="text-sm text-slate-500">
-          No customers yet. Tap <Plus aria-hidden size={14} className="inline" /> at the top or
-          choose Utang at checkout.
+          No customers yet. Tap <Plus aria-hidden size={14} className="inline" />
+          <span className="sr-only">+</span> at the top or choose Utang at checkout.
         </p>
       )}
       {adding && <NewCustomerSheet onClose={() => setAdding(false)} />}

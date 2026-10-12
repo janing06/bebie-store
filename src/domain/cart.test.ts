@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { addToCart, cartPieces, cartTotal, changeDue, setQty, type Cart } from './cart'
+import { addToCart, cartTotal, changeDue, setQty, type Cart } from './cart'
 
 const coke = { id: 'coke', name: 'Coke 1.5L', price: 7500, cost: 6200 }
 const marlboro = { id: 'marlboro', name: 'Marlboro Red', price: 900, cost: 825 }
@@ -28,10 +28,9 @@ describe('cart', () => {
     expect(setQty(cart, 'marlboro', 0)).toHaveLength(1)
   })
 
-  test('totals price times quantity and counts pieces', () => {
+  test('totals price times quantity', () => {
     const cart = addToCart(addToCart([], coke, 1), marlboro, 3)
     expect(cartTotal(cart)).toBe(7500 + 2700)
-    expect(cartPieces(cart)).toBe(4)
   })
 
   test('changeDue returns change, or null when cash is short', () => {

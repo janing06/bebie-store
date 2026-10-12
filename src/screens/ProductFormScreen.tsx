@@ -192,7 +192,7 @@ function ProductEditor({ product, products }: { product?: Product; products: Pro
         </Notice>
       )}
 
-      <div className="grid grid-cols-2 gap-2">
+      <div className={editing ? 'grid' : 'grid grid-cols-2 gap-2'}>
         {!editing && (
           <Field label="Starting stock" error={errors.startingStock}>
             <input

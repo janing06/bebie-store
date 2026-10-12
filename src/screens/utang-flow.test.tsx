@@ -49,3 +49,20 @@ test('shows "today" instead of "0 days" for a balance from today', async () => {
 
   expect(await screen.findByText(/· today$/)).toBeInTheDocument()
 })
+
+test('keeps focus in the search field after clearing it', async () => {
+  await addCustomer(db, 'Aling Nena', '')
+  const user = userEvent.setup()
+  render(
+    <Router hook={memoryLocation({ path: '/utang' }).hook}>
+      <AppRoutes />
+    </Router>,
+  )
+
+  const search = await screen.findByPlaceholderText('Search name…')
+  await user.type(search, 'Nena')
+  await user.click(screen.getByRole('button', { name: 'Clear search' }))
+
+  expect(search).toHaveFocus()
+  expect(search).toHaveValue('')
+})

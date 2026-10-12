@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import {
   ChartColumn,
   ChevronLeft,
@@ -90,6 +90,8 @@ export function BottomNav() {
   )
 }
 
+let openSheets = 0
+
 export function Sheet({
   title,
   onClose,
@@ -100,10 +102,9 @@ export function Sheet({
   children: ReactNode
 }) {
   useEffect(() => {
-    const previous = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
+    if (openSheets++ === 0) document.body.style.overflow = 'hidden'
     return () => {
-      document.body.style.overflow = previous
+      if (--openSheets === 0) document.body.style.overflow = ''
     }
   }, [])
 
@@ -254,6 +255,7 @@ export function SearchInput({
   onChange: (value: string) => void
   placeholder: string
 }) {
+  const inputRef = useRef<HTMLInputElement>(null)
   return (
     <div className="relative">
       <Search
@@ -262,6 +264,7 @@ export function SearchInput({
         className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-slate-400"
       />
       <input
+        ref={inputRef}
         type="search"
         value={value}
         onChange={(event) => onChange(event.target.value)}
@@ -273,7 +276,10 @@ export function SearchInput({
           type="button"
           aria-label="Clear search"
           className="absolute top-1/2 right-0 flex h-11 w-11 -translate-y-1/2 items-center justify-center text-slate-400"
-          onClick={() => onChange('')}
+          onClick={() => {
+            onChange('')
+            inputRef.current?.focus()
+          }}
         >
           <X aria-hidden size={20} />
         </button>

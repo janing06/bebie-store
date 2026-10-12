@@ -43,10 +43,6 @@ export function cartTotal(cart: Cart): Centavos {
   return cart.reduce((total, line) => total + line.price * line.qty, 0)
 }
 
-export function cartPieces(cart: Cart): number {
-  return cart.reduce((total, line) => total + line.qty, 0)
-}
-
 export function changeDue(total: Centavos, received: Centavos): Centavos | null {
   return received >= total ? received - total : null
 }

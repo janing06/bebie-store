@@ -140,7 +140,7 @@ export function CheckoutScreen() {
       )}
       {error && <Notice tone="bad">{error}</Notice>}
 
-      <div className="mt-auto flex gap-2">
+      <div className="mt-auto flex gap-2 pb-[env(safe-area-inset-bottom)]">
         <button
           type="button"
           className={`${btn.warn} flex-1`}
