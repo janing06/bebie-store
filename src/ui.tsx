@@ -200,7 +200,14 @@ export function Field({
   return (
     <div className="flex flex-col gap-1">
       <div className="flex items-center text-xs font-semibold tracking-wide text-slate-500 uppercase">
-        <label htmlFor={inputId}>{label}</label>
+        <label htmlFor={inputId}>
+          {label.replace(/\s*\*$/, '')}
+          {label.endsWith('*') && (
+            <span aria-hidden="true" className="text-red-600">
+              {' *'}
+            </span>
+          )}
+        </label>
         {button}
       </div>
       {cloneElement(children, { id: inputId })}
