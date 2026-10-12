@@ -4,20 +4,23 @@ import type { StoreDb } from './db'
 
 export type ShareResult = 'shared' | 'downloaded' | 'cancelled'
 
-/** Opens Android's share sheet with the backup file, or downloads it where sharing files is unsupported. */
+/** Opens Android's share sheet with the backup file, or downloads it where sharing isn't possible. */
 export async function shareBackup(db: StoreDb, now = new Date()): Promise<ShareResult> {
   const backup = await exportBackup(db, now)
-  const file = new File([JSON.stringify(backup)], backupFileName(now), { type: 'application/json' })
+  // The content is JSON, but Chrome refuses to share .json files (NotAllowedError)
+  // even when canShare() says yes, so the file goes out as plain text.
+  const file = new File([JSON.stringify(backup)], backupFileName(now), { type: 'text/plain' })
 
   if (navigator.canShare?.({ files: [file] })) {
     try {
       await navigator.share({ files: [file], title: `${STORE_NAME} backup` })
+      await markBackedUp(db, now)
+      return 'shared'
     } catch (error) {
       if (error instanceof DOMException && error.name === 'AbortError') return 'cancelled'
-      throw error
+      // The browser refused this file: save it to Downloads instead of losing the backup.
+      if (!(error instanceof DOMException && error.name === 'NotAllowedError')) throw error
     }
-    await markBackedUp(db, now)
-    return 'shared'
   }
 
   const url = URL.createObjectURL(file)

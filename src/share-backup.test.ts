@@ -22,7 +22,24 @@ describe('shareBackup', () => {
     supportFileSharing(share)
 
     expect(await shareBackup(db)).toBe('shared')
-    expect(share.mock.calls[0][0].files?.[0].name).toMatch(/^bebie-store-backup-.*\.json$/)
+    // Chrome refuses to share .json files (NotAllowedError) but accepts plain text.
+    const file = share.mock.calls[0][0].files?.[0]
+    expect(file?.name).toMatch(/^bebie-store-backup-.*\.txt$/)
+    expect(file?.type).toBe('text/plain')
+    expect(await lastBackupAt(db)).not.toBeNull()
+  })
+
+  test('falls back to downloading when the browser refuses to share the file', async () => {
+    const db = freshDb()
+    supportFileSharing(async () => {
+      throw new DOMException('Permission denied', 'NotAllowedError')
+    })
+    URL.createObjectURL = vi.fn(() => 'blob:backup')
+    URL.revokeObjectURL = vi.fn()
+    const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+
+    expect(await shareBackup(db)).toBe('downloaded')
+    expect(click).toHaveBeenCalledOnce()
     expect(await lastBackupAt(db)).not.toBeNull()
   })
 
