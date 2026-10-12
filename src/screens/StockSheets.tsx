@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { adjustStock, costPerPiece, restock } from '../data/stock'
 import { ADJUST_REASONS, db, type AdjustReason, type Product } from '../db'
-import { formatPesos, parseCount, parsePesos, type Centavos } from '../money'
+import { formatPesos, parseCount, pluralize, parsePesos, type Centavos } from '../money'
 import { Field, Notice, Sheet, Stepper } from '../ui'
 import { btn, errorMessage, inputClass } from '../ui-kit'
 
@@ -83,7 +83,7 @@ export function RestockSheet({
         />
       </Field>
       <div className="rounded-xl border border-slate-200 p-3 text-center">
-        {product.stock} + {pieces} = <b>{product.stock + pieces} pcs</b>
+        {product.stock} + {pieces} = <b>{pluralize(product.stock + pieces, 'pc')}</b>
       </div>
       {error && <Notice tone="bad">{error}</Notice>}
       <button

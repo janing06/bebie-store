@@ -11,7 +11,7 @@ import { addToCart, cartTotal } from '../domain/cart'
 import { rangeFor } from '../domain/dates'
 import { greeting } from '../domain/messages'
 import { summarize } from '../domain/reports'
-import { formatPesos } from '../money'
+import { formatPesos, pluralize } from '../money'
 import { Screen, SearchInput } from '../ui'
 import { PiecePackSheet } from './PiecePackSheet'
 import { QuickAddSheet } from './QuickAddSheet'
@@ -53,7 +53,7 @@ export function SellScreen() {
           >
             <span className="flex items-center gap-2">
               <ShoppingCart aria-hidden />
-              {cart.length} {cart.length === 1 ? 'item' : 'items'}
+              {pluralize(cart.length, 'item')}
             </span>
             <span className="flex items-center gap-1">
               {formatPesos(cartTotal(cart))}

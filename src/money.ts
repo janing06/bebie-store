@@ -12,6 +12,11 @@ export function parsePesos(input: string): Centavos | null {
   return Number(whole) * 100 + Number(fraction.padEnd(2, '0'))
 }
 
+/** "1 pc", "2 pcs": the plural just adds an s. */
+export function pluralize(count: number, singular: string): string {
+  return `${count} ${singular}${count === 1 ? '' : 's'}`
+}
+
 export function parseCount(input: string): number | null {
   const text = input.trim()
   return COUNT_PATTERN.test(text) ? Number(text) : null

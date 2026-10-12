@@ -8,7 +8,7 @@ import { lastBackupAt, parseBackup, restoreBackup, type BackupFile } from '../da
 import { salesBetween, voidSale } from '../data/sales'
 import { db, type Sale } from '../db'
 import { daysSince, formatDay, formatTime, rangeFor } from '../domain/dates'
-import { formatPesos } from '../money'
+import { formatPesos, pluralize } from '../money'
 import { shareBackup } from '../share-backup'
 import { ConfirmSheet, Notice, Screen } from '../ui'
 import { btn, errorMessage } from '../ui-kit'
@@ -25,7 +25,7 @@ async function restoreMessage(backup: BackupFile): Promise<string> {
   const { tables } = backup
   const warning =
     newerSales > 0 ? ' This phone has sales newer than this backup. They will be lost.' : ''
-  return `Backup from ${formatDay(backup.exportedAt)}, ${formatTime(backup.exportedAt)}: ${tables.products.length} products, ${tables.sales.length} sales, ${tables.customers.length} customers. On this phone now: ${products} products, ${sales} sales, ${customers} customers. Everything now on this phone will be replaced.${warning}`
+  return `Backup from ${formatDay(backup.exportedAt)}, ${formatTime(backup.exportedAt)}: ${pluralize(tables.products.length, 'product')}, ${pluralize(tables.sales.length, 'sale')}, ${pluralize(tables.customers.length, 'customer')}. On this phone now: ${pluralize(products, 'product')}, ${pluralize(sales, 'sale')}, ${pluralize(customers, 'customer')}. Everything now on this phone will be replaced.${warning}`
 }
 
 export function MoreScreen() {
@@ -144,7 +144,7 @@ export function MoreScreen() {
               {formatPesos(sale.total)} ·{' '}
               {sale.payment === 'cash' ? 'Cash' : `Utang (${customerName(sale.customerId)})`}
               <span className="block text-xs text-slate-500 no-underline">
-                {formatTime(sale.createdAt)} · {itemCount(sale.id)} items
+                {formatTime(sale.createdAt)} · {pluralize(itemCount(sale.id), 'item')}
               </span>
             </span>
             {sale.voidedAt ? (

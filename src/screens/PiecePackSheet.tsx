@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { Product } from '../db'
-import { formatPesos } from '../money'
+import { formatPesos, pluralize } from '../money'
 import { Sheet, Stepper } from '../ui'
 import { btn } from '../ui-kit'
 
@@ -21,7 +21,7 @@ export function PiecePackSheet({
 
   return (
     <Sheet title={product.name} onClose={onClose}>
-      <p className="text-sm text-slate-500">Stock: {product.stock} pcs</p>
+      <p className="text-sm text-slate-500">Stock: {pluralize(product.stock, 'pc')}</p>
       <div className="flex gap-2">
         {(['piece', 'pack'] as const).map((option) => (
           <button

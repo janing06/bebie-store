@@ -5,7 +5,7 @@ import { db } from '../db'
 import { customRange, rangeFor, toYmd, type RangeKey } from '../domain/dates'
 import { cheer } from '../domain/messages'
 import { summarize } from '../domain/reports'
-import { formatPesos } from '../money'
+import { formatPesos, pluralize } from '../money'
 import { Field, Notice, Screen } from '../ui'
 import { btn, inputClass } from '../ui-kit'
 
@@ -108,7 +108,7 @@ export function ReportsScreen() {
                   {index + 1}. {seller.name}
                 </span>
                 <span>
-                  {seller.qty} pcs · {formatPesos(seller.total)}
+                  {pluralize(seller.qty, 'pc')} · {formatPesos(seller.total)}
                 </span>
               </li>
             ))}

@@ -1,5 +1,12 @@
 import { describe, expect, test } from 'vitest'
-import { divideRoundHalfUp, formatPesos, parseCount, parsePesos, toPesosInput } from './money'
+import {
+  divideRoundHalfUp,
+  formatPesos,
+  parseCount,
+  parsePesos,
+  pluralize,
+  toPesosInput,
+} from './money'
 
 describe('parsePesos', () => {
   test.each([
@@ -61,5 +68,15 @@ describe('divideRoundHalfUp', () => {
     [1000, 8, 125],
   ])('%d / %d = %d', (amount, divisor, expected) => {
     expect(divideRoundHalfUp(amount, divisor)).toBe(expected)
+  })
+})
+
+describe('pluralize', () => {
+  test.each([
+    [0, '0 pcs'],
+    [1, '1 pc'],
+    [2, '2 pcs'],
+  ])('%d pc is written %s', (count, expected) => {
+    expect(pluralize(count, 'pc')).toBe(expected)
   })
 })

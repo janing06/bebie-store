@@ -5,7 +5,7 @@ import { Link } from 'wouter'
 import { isLowStock, matchesSearch, setProductActive } from '../data/products'
 import { db, type Product } from '../db'
 import { formatDay } from '../domain/dates'
-import { formatPesos } from '../money'
+import { formatPesos, pluralize } from '../money'
 import { Notice, Screen, SearchInput } from '../ui'
 import { ROW, btn, errorMessage } from '../ui-kit'
 
@@ -88,8 +88,7 @@ function ActiveRow({ product }: { product: Product }) {
           </span>
         </span>
         <span className={`flex items-center gap-1 ${low ? 'font-bold text-red-600' : ''}`}>
-          {product.stock}
-          {product.packSize ? ' pcs' : ''}
+          {product.packSize ? pluralize(product.stock, 'pc') : product.stock}
           {low && <TriangleAlert aria-hidden size={16} />}
           <ChevronRight aria-hidden size={20} className="text-slate-400" />
         </span>

@@ -95,7 +95,5 @@ test('warns before restoring an older backup over newer sales', async () => {
   expect(
     await screen.findByText(/This phone has sales newer than this backup. They will be lost./),
   ).toBeInTheDocument()
-  expect(
-    screen.getByText(/On this phone now: 1 products, 1 sales, 0 customers/),
-  ).toBeInTheDocument()
+  expect(screen.getByText(/On this phone now: 1 product, 1 sale, 0 customers/)).toBeInTheDocument()
 })

@@ -42,3 +42,15 @@ test('says "1 sale" for a single sale', async () => {
 
   expect(await screen.findByText('1 sale')).toBeInTheDocument()
 })
+
+test('says "1 pc" for a single piece sold', async () => {
+  const coke = await addProduct(db, sampleProduct({ price: 7500 }))
+  await checkout(db, { cart: addToCart([], coke, 1), payment: 'cash', cashReceived: 10000 })
+  render(
+    <Router hook={memoryLocation({ path: '/reports' }).hook}>
+      <AppRoutes />
+    </Router>,
+  )
+
+  expect(await screen.findByText('1 pc · ₱75')).toBeInTheDocument()
+})
