@@ -104,6 +104,20 @@ test('lists non-favorites under ALL PRODUCTS, not favorites', async () => {
   expect(screen.getAllByRole('button', { name: /Coke 1\.5L/ })).toHaveLength(1)
 })
 
+test('ALL PRODUCTS rows show stock, with pack size for pack items', async () => {
+  await addProduct(db, sampleProduct({ name: 'Yelo', startingStock: 24 }))
+  await addProduct(
+    db,
+    sampleProduct({ name: 'Marlboro Red', price: 900, packSize: 20, startingStock: 46 }),
+  )
+  renderApp()
+
+  expect(await screen.findByRole('button', { name: /Yelo.*Stock: 24/ })).toBeInTheDocument()
+  expect(
+    screen.getByRole('button', { name: /Marlboro Red.*Stock: 46 pcs · Pack of 20/ }),
+  ).toBeInTheDocument()
+})
+
 test('tapping an ALL PRODUCTS row adds it to the cart', async () => {
   await seedMixed()
   const user = userEvent.setup()

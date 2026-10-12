@@ -21,7 +21,7 @@ import { Link } from 'wouter'
 import { STORE_NAME } from '../brand'
 import { useCart } from '../cart-context'
 import { loadFavoriteOrder, moveId, orderFavorites, saveFavoriteOrder } from '../data/favorites'
-import { matchesSearch } from '../data/products'
+import { isLowStock, matchesSearch } from '../data/products'
 import { salesBetween } from '../data/sales'
 import { db, type Product } from '../db'
 import { addToCart, cartTotal } from '../domain/cart'
@@ -209,17 +209,25 @@ export function SellScreen() {
       )}
       {!searching && !arranging && others.length > 0 && (
         <>
-          <p className="text-xs font-semibold tracking-wide text-slate-500">ALL PRODUCTS</p>
-          <div className="divide-y divide-slate-200">
+          <p className="mt-6 text-xs font-semibold tracking-wide text-slate-500">ALL PRODUCTS</p>
+          <div className="flex flex-col gap-2">
             {others.map((product) => (
               <button
                 key={product.id}
                 type="button"
                 onClick={() => choose(product)}
-                className="flex min-h-12 w-full select-none items-center justify-between gap-2 px-1 text-left transition active:bg-slate-100"
+                className="flex min-h-16 w-full select-none items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-left transition active:bg-slate-200"
               >
-                <span className="font-semibold">{product.name}</span>
-                <span className="font-semibold text-brand">
+                <span className="flex flex-col">
+                  <span className="font-semibold">{product.name}</span>
+                  <span
+                    className={`text-xs ${isLowStock(product) ? 'font-semibold text-red-600' : 'text-slate-500'}`}
+                  >
+                    Stock: {product.packSize ? pluralize(product.stock, 'pc') : product.stock}
+                    {product.packSize ? ` · Pack of ${product.packSize}` : ''}
+                  </span>
+                </span>
+                <span className="text-lg font-semibold text-brand">
                   {formatPesos(product.price)}
                   {product.packSize ? '/pc' : ''}
                 </span>
