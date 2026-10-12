@@ -141,7 +141,7 @@ function ProductEditor({ product, products }: { product?: Product; products: Pro
         </Notice>
       )}
 
-      <div className="flex gap-2">
+      <div className="grid grid-cols-2 gap-2">
         <Field
           label="Price ₱ *"
           error={errors.price}
@@ -178,7 +178,7 @@ function ProductEditor({ product, products }: { product?: Product; products: Pro
         </Notice>
       )}
 
-      <div className="flex gap-2">
+      <div className="grid grid-cols-2 gap-2">
         {!editing && (
           <Field label="Starting stock" error={errors.startingStock}>
             <input

@@ -163,7 +163,7 @@ export function Field({
   children: ReactNode
 }) {
   return (
-    <label className="flex flex-1 flex-col gap-1">
+    <label className="flex flex-col gap-1">
       <span className="text-xs font-semibold tracking-wide text-slate-500 uppercase">{label}</span>
       {children}
       {hint && <span className="text-xs font-semibold text-brand">{hint}</span>}
