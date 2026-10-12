@@ -274,10 +274,12 @@ export function SearchInput({
   value,
   onChange,
   placeholder,
+  disabled,
 }: {
   value: string
   onChange: (value: string) => void
   placeholder: string
+  disabled?: boolean
 }) {
   const inputRef = useRef<HTMLInputElement>(null)
   return (
@@ -293,6 +295,7 @@ export function SearchInput({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
+        disabled={disabled}
         className={`${inputClass()} pr-11 pl-10`}
       />
       {value !== '' && (
