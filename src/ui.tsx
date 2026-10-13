@@ -4,6 +4,7 @@ import {
   useId,
   useRef,
   useState,
+  type MouseEvent,
   type ReactElement,
   type ReactNode,
 } from 'react'
@@ -80,14 +81,26 @@ export function Screen({
   )
 }
 
+// Tabs behave like an Android app: Back from any tab returns to Sell, and Back on Sell leaves.
+// So history holds at most Sell plus one tab, marked overSell so tapping Sell can pop it.
 export function BottomNav() {
-  const [location] = useLocation()
+  const [location, navigate] = useLocation()
+
+  function openTab(event: MouseEvent, href: string) {
+    event.preventDefault()
+    if (href === location) return
+    if (location === '/') navigate(href, { state: { overSell: true } })
+    else if (href === '/' && window.history.state?.overSell) window.history.back()
+    else navigate(href, { replace: true, state: window.history.state })
+  }
+
   return (
     <nav className="flex border-t border-slate-200">
       {TABS.map(({ href, label, Icon }) => (
         <Link
           key={href}
           href={href}
+          onClick={(event) => openTab(event, href)}
           className={`flex flex-1 select-none flex-col items-center gap-0.5 py-2 text-xs transition active:bg-slate-100 ${
             location === href ? 'font-bold text-brand' : 'text-slate-500'
           }`}
