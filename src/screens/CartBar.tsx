@@ -8,7 +8,7 @@ import { cartTotal, type Cart } from '../domain/cart'
 import { formatPesos, pluralize } from '../money'
 
 const REVEAL = 64 // px the bar rests open to show the trash circle
-const FADE_FROM = 48 // px of swipe where the card starts uncovering the circle
+const FADE_FROM = 40 // px of swipe where the circle starts fading in, just before it shows
 const MAX_SCALE = 1.25 // biggest size still fits on screen, ring included
 const CLEAR_AT = 0.25 // share of the bar width; letting go past it clears
 const HINT_SWIPES = 3
@@ -54,10 +54,10 @@ export function CartBar({ cart, onClear }: { cart: Cart; onClear: () => void }) 
           MAX_SCALE,
           1 + ((MAX_SCALE - 1) * (-offset - REVEAL)) / Math.max(1, clearAt - REVEAL),
         )
-  // While dragging it fades in from where the card starts uncovering it to the clear point.
+  // While dragging it fades in quickly as the card uncovers it, fully solid once uncovered.
   // At rest it is either hidden or fully solid, so the open trash is easy to see and tap.
   const opacity = dragging
-    ? Math.min(1, Math.max(0, (-offset - FADE_FROM) / Math.max(1, clearAt - FADE_FROM)))
+    ? Math.min(1, Math.max(0, (-offset - FADE_FROM) / (REVEAL - FADE_FROM)))
     : offset < 0
       ? 1
       : 0
