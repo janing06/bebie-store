@@ -15,9 +15,8 @@ import {
   useSortable,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { ArrowUpDown, GripVertical, Plus, ShoppingCart, ChevronRight } from 'lucide-react'
-import { useState } from 'react'
-import { Link } from 'wouter'
+import { ArrowUpDown, GripVertical, Plus } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { STORE_NAME } from '../brand'
 import { useCart } from '../cart-context'
 import { loadFavoriteOrder, moveId, orderFavorites, saveFavoriteOrder } from '../data/favorites'
@@ -25,7 +24,7 @@ import { loadAllProductsSort, saveAllProductsSort } from '../data/preferences'
 import { isLowStock, matchesSearch } from '../data/products'
 import { salesBetween } from '../data/sales'
 import { db, type Product } from '../db'
-import { addToCart, cartTotal } from '../domain/cart'
+import { addToCart, type Cart } from '../domain/cart'
 import { addDays, rangeFor } from '../domain/dates'
 import { greeting } from '../domain/messages'
 import { soldQuantities, sortProducts, type SortMode } from '../domain/product-sort'
@@ -33,6 +32,7 @@ import { summarize } from '../domain/reports'
 import { formatPesos, pluralize } from '../money'
 import { Screen, SearchInput } from '../ui'
 import { btn } from '../ui-kit'
+import { CartBar, UNDO_MS, UndoClear } from './CartBar'
 import { PiecePackSheet } from './PiecePackSheet'
 import { QuickAddSheet } from './QuickAddSheet'
 
@@ -94,6 +94,7 @@ export function SellScreen() {
   const [quickAdd, setQuickAdd] = useState(false)
   const [arranging, setArranging] = useState(false)
   const [draft, setDraft] = useState<string[] | null>(null)
+  const [cleared, setCleared] = useState<Cart | null>(null)
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
@@ -113,6 +114,12 @@ export function SellScreen() {
   )
   const canArrange = !searching && favorites.length >= 2
   const todayTotal = today ? summarize(today.sales, today.items).salesTotal : 0
+
+  useEffect(() => {
+    if (!cleared) return
+    const timer = setTimeout(() => setCleared(null), UNDO_MS)
+    return () => clearTimeout(timer)
+  }, [cleared])
 
   function choose(product: Product) {
     if (product.packSize) setPicking(product)
@@ -141,20 +148,24 @@ export function SellScreen() {
       subtitle={`${greeting(now)} 👋 · Today ${formatPesos(todayTotal)}`}
       nav
       footer={
-        cart.length > 0 && (
-          <Link
-            href="/checkout"
-            className="mx-3 mb-2 flex select-none justify-between rounded-xl bg-brand p-4 text-lg font-bold text-white transition active:scale-[0.98] active:opacity-80"
-          >
-            <span className="flex items-center gap-2">
-              <ShoppingCart aria-hidden />
-              {pluralize(cart.length, 'item')}
-            </span>
-            <span className="flex items-center gap-1">
-              {formatPesos(cartTotal(cart))}
-              <ChevronRight aria-hidden />
-            </span>
-          </Link>
+        cart.length > 0 ? (
+          <CartBar
+            cart={cart}
+            onClear={() => {
+              setCleared(cart)
+              setCart([])
+            }}
+          />
+        ) : (
+          cleared && (
+            <UndoClear
+              cleared={cleared}
+              onUndo={() => {
+                setCart(cleared)
+                setCleared(null)
+              }}
+            />
+          )
         )
       }
     >
