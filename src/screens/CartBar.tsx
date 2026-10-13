@@ -8,8 +8,7 @@ import { cartTotal, type Cart } from '../domain/cart'
 import { formatPesos, pluralize } from '../money'
 
 const REVEAL = 64 // px the bar rests open to show the trash circle
-const MAX_SCALE = 1.4
-const GAP = 8 // px between the card's edge and the trash circle
+const MAX_SCALE = 1.25 // biggest size still fits on screen, ring included
 const CLEAR_AT = 0.25 // share of the bar width; letting go past it clears
 const HINT_SWIPES = 3
 const FLY_MS = 200
@@ -113,16 +112,15 @@ export function CartBar({ cart, onClear }: { cart: Cart; onClear: () => void }) 
   const motion = dragging ? '' : 'transition duration-200 ease-out'
 
   return (
-    // Clips the circle while it waits off the right edge, but lets the card fly off the left.
-    <div className="overflow-x-clip px-3 pb-2">
+    <div className="px-3 pb-2">
       <div className="relative">
-        {/* Rides just past the card's edge and grows from its left, as if tucked behind the card. */}
+        {/* Sits still under the card's right end; the card slides off it. It grows from its
+            left and fades in, so it looks like it was there behind the card all along. */}
         <button
           type="button"
           aria-label="Clear cart"
           tabIndex={offset === 0 ? -1 : 0}
-          className={`absolute inset-y-0 left-full flex w-12 items-center ${motion}`}
-          style={{ transform: `translateX(${offset + GAP}px)` }}
+          className="absolute inset-y-0 right-2 flex w-12 items-center"
           onClick={() => flyAway(width)}
         >
           <span
