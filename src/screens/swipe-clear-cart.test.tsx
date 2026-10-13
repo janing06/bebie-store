@@ -44,10 +44,10 @@ function swipe(distance: number) {
   fireEvent.pointerUp(bar, { clientX: 250 - distance, pointerId: 1 })
 }
 
-test('swiping the cart bar past a third clears the cart, and Undo brings it back', async () => {
+test('swiping the cart bar past a quarter clears the cart, and Undo brings it back', async () => {
   const user = await sellWithTwoItems()
 
-  swipe(BAR_WIDTH * 0.4)
+  swipe(BAR_WIDTH * 0.3)
 
   expect(await screen.findByText('Cleared 2 items · ₱120')).toBeInTheDocument()
   expect(screen.queryByRole('link', { name: /2 items/ })).not.toBeInTheDocument()

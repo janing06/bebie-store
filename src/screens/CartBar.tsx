@@ -9,7 +9,7 @@ import { formatPesos, pluralize } from '../money'
 
 const REVEAL = 64 // px the bar rests open; the trash circle lines up with the bar's right edge
 const MAX_SCALE = 1.4
-const CLEAR_AT = 0.35 // share of the bar width; letting go past it clears
+const CLEAR_AT = 0.25 // share of the bar width; letting go past it clears
 const HINT_SWIPES = 3
 const FLY_MS = 200
 export const UNDO_MS = 5000 // matches --animate-shrink in index.css
@@ -25,7 +25,7 @@ interface Drag {
 
 /**
  * The Sell screen's cart bar. A tap opens the cart. Swiping left shows a trash circle that
- * grows with the swipe; letting go past about a third of the bar clears the cart.
+ * grows with the swipe; letting go past a quarter of the bar clears the cart.
  */
 export function CartBar({ cart, onClear }: { cart: Cart; onClear: () => void }) {
   const drag = useRef<Drag | null>(null)
