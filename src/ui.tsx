@@ -81,15 +81,32 @@ export function Screen({
   )
 }
 
+// Chrome on Android only. It catches the Back gesture without a history entry.
+declare global {
+  interface Window {
+    CloseWatcher?: new () => { onclose: (() => void) | null; destroy(): void }
+  }
+}
+
 // Tabs behave like an Android app: Back from any tab returns to Sell, and Back on Sell leaves.
-// So history holds at most Sell plus one tab, marked overSell so tapping Sell can pop it.
+// With CloseWatcher, tabs replace each other and Back is caught on the tab, so Chrome plays
+// no page-slide animation. Without it, history holds at most Sell plus one tab, marked
+// overSell so tapping Sell can pop it.
 export function BottomNav() {
   const [location, navigate] = useLocation()
+
+  useEffect(() => {
+    if (location === '/' || !window.CloseWatcher) return
+    const watcher = new window.CloseWatcher()
+    watcher.onclose = () => navigate('/', { replace: true })
+    return () => watcher.destroy()
+  }, [location, navigate])
 
   function openTab(event: MouseEvent, href: string) {
     event.preventDefault()
     if (href === location) return
-    if (location === '/') navigate(href, { state: { overSell: true } })
+    if (window.CloseWatcher) navigate(href, { replace: true })
+    else if (location === '/') navigate(href, { state: { overSell: true } })
     else if (href === '/' && window.history.state?.overSell) window.history.back()
     else navigate(href, { replace: true, state: window.history.state })
   }

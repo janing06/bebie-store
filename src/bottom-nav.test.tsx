@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { cleanup, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { afterEach, beforeEach, expect, test } from 'vitest'
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { AppRoutes } from './App'
 import { db } from './db'
 
@@ -37,4 +37,45 @@ test('tapping Sell goes back to the Sell entry instead of stacking a new one', a
   await openTab('More')
 
   expect(window.history.length).toBe(sellPlusOneTab)
+})
+
+describe('with CloseWatcher (Chrome on Android)', () => {
+  const watchers: { onclose: (() => void) | null; destroyed: boolean }[] = []
+
+  beforeEach(() => {
+    watchers.length = 0
+    vi.stubGlobal(
+      'CloseWatcher',
+      class {
+        onclose: (() => void) | null = null
+        destroyed = false
+        constructor() {
+          watchers.push(this)
+        }
+        destroy() {
+          this.destroyed = true
+        }
+      },
+    )
+  })
+  afterEach(() => vi.unstubAllGlobals())
+
+  test('switches tabs without history entries, so Back plays no page animation', async () => {
+    render(<AppRoutes />)
+    const before = window.history.length
+    await openTab('Products')
+    await openTab('Utang')
+
+    expect(window.history.length).toBe(before)
+  })
+
+  test('Back on a tab returns to Sell', async () => {
+    render(<AppRoutes />)
+    await openTab('Reports')
+
+    watchers.find((watcher) => !watcher.destroyed)?.onclose?.()
+
+    expect(await screen.findByRole('heading', { name: "Bebie's Store", level: 1 })).toBeVisible()
+    expect(watchers.every((watcher) => watcher.destroyed)).toBe(true)
+  })
 })
