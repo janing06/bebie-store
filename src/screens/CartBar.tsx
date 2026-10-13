@@ -8,6 +8,7 @@ import { cartTotal, type Cart } from '../domain/cart'
 import { formatPesos, pluralize } from '../money'
 
 const REVEAL = 64 // px the bar rests open to show the trash circle
+const FADE_FROM = 48 // px of swipe where the card starts uncovering the circle
 const MAX_SCALE = 1.25 // biggest size still fits on screen, ring included
 const CLEAR_AT = 0.25 // share of the bar width; letting go past it clears
 const HINT_SWIPES = 3
@@ -53,6 +54,13 @@ export function CartBar({ cart, onClear }: { cart: Cart; onClear: () => void }) 
           MAX_SCALE,
           1 + ((MAX_SCALE - 1) * (-offset - REVEAL)) / Math.max(1, clearAt - REVEAL),
         )
+  // While dragging it fades in from where the card starts uncovering it to the clear point.
+  // At rest it is either hidden or fully solid, so the open trash is easy to see and tap.
+  const opacity = dragging
+    ? Math.min(1, Math.max(0, (-offset - FADE_FROM) / Math.max(1, clearAt - FADE_FROM)))
+    : offset < 0
+      ? 1
+      : 0
 
   function flyAway(barWidth: number) {
     setOffset(-(barWidth + 40)) // off the left edge of the screen
@@ -125,7 +133,7 @@ export function CartBar({ cart, onClear }: { cart: Cart; onClear: () => void }) 
         >
           <span
             className={`flex h-12 w-12 origin-left items-center justify-center rounded-full bg-red-600 text-white ${motion} ${armed ? 'ring-6 ring-red-600/20' : ''}`}
-            style={{ transform: `scale(${scale})`, opacity: Math.min(1, -offset / REVEAL) }}
+            style={{ transform: `scale(${scale})`, opacity }}
           >
             <Trash2 aria-hidden size={24} />
           </span>
@@ -133,7 +141,7 @@ export function CartBar({ cart, onClear }: { cart: Cart; onClear: () => void }) 
         <Link
           href="/checkout"
           draggable={false}
-          className={`relative flex touch-pan-y select-none justify-between rounded-xl bg-brand p-4 text-lg font-bold text-white active:opacity-80 ${motion}`}
+          className={`relative flex touch-pan-y select-none justify-between rounded-xl bg-brand p-4 text-lg font-bold text-white active:brightness-90 ${motion}`}
           style={{ transform: `translateX(${offset}px)` }}
           onPointerDown={down}
           onPointerMove={move}
