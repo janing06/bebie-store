@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Route, Switch } from 'wouter'
 import { CartProvider } from './CartProvider'
+import { db } from './db'
 import { CheckoutScreen } from './screens/CheckoutScreen'
 import { CustomerScreen } from './screens/CustomerScreen'
 import { ImportScreen } from './screens/ImportScreen'
@@ -13,6 +14,7 @@ import { SellScreen } from './screens/SellScreen'
 import { UtangScreen } from './screens/UtangScreen'
 import { Splash } from './Splash'
 import { Screen } from './ui'
+import { useDriveBackup } from './use-drive-backup'
 
 const SPLASH_MS = 1200
 
@@ -42,6 +44,7 @@ export function AppRoutes() {
 }
 
 export function App() {
+  useDriveBackup(db)
   const [showSplash, setShowSplash] = useState(true)
 
   useEffect(() => {
