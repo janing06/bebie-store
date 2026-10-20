@@ -3,20 +3,31 @@ import type { StoreDb } from './db'
 
 const URL_KEY = 'syncUrl'
 const SECRET_KEY = 'syncKey'
+const NAME_KEY = 'syncName' // which phone, so each phone gets its own Drive files
 const SCRIPT_HOST = 'https://script.google.com/' // only the owner's Apps Script, never elsewhere
 const AT_KEY = 'driveBackupAt'
 const HASH_KEY = 'driveBackupHash'
 export const BACKUP_EVERY_MS = 60 * 60 * 1000
 
-/** Saves the setup from a link like #sync=<script URL>&key=<secret>. True when there was one. */
+/**
+ * Saves the setup from a link like #sync=<script URL>&key=<secret>&name=<phone>. True when there
+ * was one. The name is optional and cleaned to fit in a file name.
+ */
 export async function saveSetupFromHash(db: StoreDb, hash: string): Promise<boolean> {
   const params = new URLSearchParams(hash.replace(/^#/, ''))
   const url = params.get('sync')
   const key = params.get('key')
   if (!url?.startsWith(SCRIPT_HOST) || !key) return false
+  const name = (params.get('name') ?? '')
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-]/g, '')
+    .slice(0, 20)
   await db.settings.bulkPut([
     { key: URL_KEY, value: url },
     { key: SECRET_KEY, value: key },
+    { key: NAME_KEY, value: name },
   ])
   return true
 }
@@ -30,8 +41,8 @@ export async function backUpToDriveIfDue(
   now = new Date(),
   send: typeof fetch = fetch,
 ): Promise<'uploaded' | 'skipped'> {
-  const [url, key, at, lastHash] = await Promise.all(
-    [URL_KEY, SECRET_KEY, AT_KEY, HASH_KEY].map(
+  const [url, key, name = '', at, lastHash] = await Promise.all(
+    [URL_KEY, SECRET_KEY, NAME_KEY, AT_KEY, HASH_KEY].map(
       async (name) => (await db.settings.get(name))?.value,
     ),
   )
@@ -47,7 +58,7 @@ export async function backUpToDriveIfDue(
   const gzip = await gzipBase64(JSON.stringify(backup))
   const response = await send(url, {
     method: 'POST',
-    body: JSON.stringify({ key, exportedAt: backup.exportedAt, gzip }),
+    body: JSON.stringify({ key, name, exportedAt: backup.exportedAt, gzip }),
   })
   const reply: unknown = await response.json()
   if (!response.ok || (reply as { ok?: unknown } | null)?.ok !== true) {

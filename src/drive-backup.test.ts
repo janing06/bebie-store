@@ -49,7 +49,12 @@ async function setUpStore(): Promise<StoreDb> {
 
 async function sentBackup(send: ReturnType<typeof fakeScript>, call = 0) {
   const [, init] = send.mock.calls[call]
-  const body = JSON.parse(String(init?.body)) as { key: string; exportedAt: string; gzip: string }
+  const body = JSON.parse(String(init?.body)) as {
+    key: string
+    name: string
+    exportedAt: string
+    gzip: string
+  }
   const bytes = Uint8Array.from(atob(body.gzip), (char) => char.charCodeAt(0))
   const json = await new Response(
     new Response(bytes).body!.pipeThrough(new DecompressionStream('gzip')),
@@ -59,6 +64,33 @@ async function sentBackup(send: ReturnType<typeof fakeScript>, call = 0) {
 
 test('the hourly limit is one hour', () => {
   expect(BACKUP_EVERY_MS).toBe(60 * 60 * 1000)
+})
+
+test('the setup link saves the phone name, cleaned for a file name', async () => {
+  const db = freshDb()
+
+  await saveSetupFromHash(db, `${SETUP_HASH}&name=${encodeURIComponent('Jan Phone!')}`)
+
+  expect(await db.settings.get('syncName')).toEqual({ key: 'syncName', value: 'jan-phone' })
+})
+
+test('the phone name is sent with each backup', async () => {
+  const db = freshDb()
+  await saveSetupFromHash(db, `${SETUP_HASH}&name=mom`)
+  const send = fakeScript()
+
+  await backUpToDriveIfDue(db, NOW, send)
+
+  expect((await sentBackup(send)).name).toBe('mom')
+})
+
+test('a link without a name sends an empty name', async () => {
+  const db = await setUpStore()
+  const send = fakeScript()
+
+  await backUpToDriveIfDue(db, NOW, send)
+
+  expect((await sentBackup(send)).name).toBe('')
 })
 
 test('uploads the backup to the script and counts it as backed up', async () => {

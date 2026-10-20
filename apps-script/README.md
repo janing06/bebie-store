@@ -1,10 +1,11 @@
 # Automatic backup to Google Drive
 
-Mom's phone sends the store backup to your Google Drive by itself: at most once an hour, only
-when something changed, and only with internet. She never sees anything. This guide sets up the
-Google side once. It's free and needs only your normal Google account.
+Each connected phone sends its store backup to your Google Drive by itself: at most once an hour,
+only when something changed, and only with internet. Nothing shows on the phone. This guide sets
+up the Google side once, then connects each phone. It's free and needs only your normal Google
+account.
 
-Do steps 1–7 on a computer, signed in to the Google account whose Drive should hold the backups.
+Do parts 1–4 on a computer, signed in to the Google account whose Drive should hold the backups.
 
 ## 1. Create the script
 
@@ -21,7 +22,7 @@ Do steps 1–7 on a computer, signed in to the Google account whose Drive should
 2. In the pasted code, replace `PASTE-YOUR-SECRET-HERE` with it. Keep the quotes around it.
 3. Save with Ctrl+S (Cmd+S on a Mac).
 
-Keep the code somewhere safe; it goes into the phone link in step 5. Never put it on GitHub.
+Keep the code somewhere safe; it goes into each phone's link in part 5. Never put it on GitHub.
 
 ## 3. Approve and run the setup
 
@@ -38,62 +39,65 @@ Keep the code somewhere safe; it goes into the phone link in step 5. Never put i
 1. Click **Deploy** → **New deployment**.
 2. Click the gear next to "Select type" and choose **Web app**.
 3. Set **Execute as: Me** and **Who has access: Anyone**.
-   ("Anyone" lets Mom's phone reach it without signing in; the secret code keeps others out.)
+   ("Anyone" lets the phones reach it without signing in; the secret code keeps others out.)
 4. Click **Deploy**, then copy the **Web app URL**. It ends with `/exec`.
 
-## 5. Build the setup link
+## 5. Build each phone's setup link
 
-The link is:
+Each phone gets its own link with its own name, so each phone gets its own files in Drive:
 
 ```
-https://bebie-store.vercel.app/#sync=<web app URL, encoded>&key=<your secret code>
+https://bebie-store.vercel.app/#sync=<web app URL, encoded>&key=<your secret code>&name=<phone>
 ```
 
-To encode the URL, open any browser tab, press F12 (or right-click → Inspect) → **Console**, and
-run:
+Use a short name per phone, like `mom` or `jan`. To build the link, open any browser tab, press
+F12 (or right-click → Inspect) → **Console**, and run:
 
 ```js
 'https://bebie-store.vercel.app/#sync=' +
   encodeURIComponent('PASTE-WEB-APP-URL') +
-  '&key=PASTE-SECRET'
+  '&key=PASTE-SECRET&name=mom'
 ```
 
-Copy the result, without the quotes around it.
+Copy the result, without the quotes around it. Make one link per phone, changing only the name.
 
-## 6. Connect Mom's phone
+## 6. Connect a phone
 
-1. Send the link to Mom's phone in a way only you can see (for example, message yourself and
-   open it on her phone, then delete the message).
+1. Get the link onto the phone in a way only you can see (for example, message it to yourself,
+   open it on the phone, then delete the message).
 2. Open the link in **Chrome**, the browser the app was installed from. The store opens normally;
    nothing about backups shows.
 3. Close that tab. The installed app shares the same data, so it's connected too.
 
 ## 7. Check it worked
 
-Within a minute, a file like `bebie-store-2026-10-15.json` appears in **Bebie's Store backups**.
-That's it.
+Make a change in the app (a sale, or edit a product), then within a minute a file like
+`bebie-store-mom-2026-10-21.json` appears in **Bebie's Store backups**. That's it.
 
 ## How it behaves
 
-- **Files:** one per day; later uploads that day replace that day's file. Every night only the
-  newest 30 files are kept, so even a long break never deletes the last backups.
-- **Days without sales:** the phone only uploads when something changed, so a store closed for 2+
-  days also triggers the alert email. That's expected.
-- **Alert:** if nothing arrives for 2 days, you get an email at 11pm. Usually it just means the
-  phone was offline; open the app with internet on.
-- **Restoring:** on the new phone, install the app, download the newest file from Drive, then
-  More → Restore → pick the file. Syncing reconnects by itself, because the file carries the setup.
+- **Files:** one per phone per day; later uploads that day replace that phone's file for the day.
+  Every night only each phone's newest 30 files are kept, so even a long break never deletes the
+  last backups.
+- **Alert:** if a phone sends nothing for 2 days, you get an email at 11pm naming that phone.
+  Usually it just means the phone was offline or the store was closed with no sales (the phone
+  only uploads when something changed); open the app with internet on.
+- **Restoring:** on the new phone, install the app, download that phone's newest file from Drive,
+  then More → Restore → pick the file. Syncing reconnects by itself, because the file carries the
+  setup.
+- **Disconnecting a phone:** in Chrome on that phone, Settings → Site settings → All sites →
+  bebie-store.vercel.app → **Delete data**. This also deletes the app's data on that phone.
 
 ## Changing the script later
 
 After editing the code: **Deploy** → **Manage deployments** → pencil icon → Version: **New
-version** → **Deploy**. This keeps the same URL, so Mom's phone needs nothing.
+version** → **Deploy**. This keeps the same URL, so the phones need nothing.
 
 ## Troubleshooting
 
-- **No file after a few minutes:** make sure Mom's phone has internet and the app was opened. Then
-  in Apps Script open **Executions** on the left and look for errors.
+- **No file after a few minutes:** make sure the phone has internet, the app was opened, and
+  something changed. Then in Apps Script open **Executions** on the left and look for errors.
 - **Executions show `wrong key`:** the secret in the link and in the script differ. Fix the script
-  (and deploy a new version), or open a new link on her phone.
+  (and deploy a new version), or open a new link on the phone.
 - **No executions at all:** the URL in the link is wrong, or the deployment's access isn't
   **Anyone**.
