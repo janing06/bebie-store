@@ -3,6 +3,7 @@ import type { StoreDb } from './db'
 
 const URL_KEY = 'syncUrl'
 const SECRET_KEY = 'syncKey'
+const SCRIPT_HOST = 'https://script.google.com/' // only the owner's Apps Script, never elsewhere
 const AT_KEY = 'driveBackupAt'
 const HASH_KEY = 'driveBackupHash'
 export const BACKUP_EVERY_MS = 60 * 60 * 1000
@@ -12,7 +13,7 @@ export async function saveSetupFromHash(db: StoreDb, hash: string): Promise<bool
   const params = new URLSearchParams(hash.replace(/^#/, ''))
   const url = params.get('sync')
   const key = params.get('key')
-  if (!url?.startsWith('https://') || !key) return false
+  if (!url?.startsWith(SCRIPT_HOST) || !key) return false
   await db.settings.bulkPut([
     { key: URL_KEY, value: url },
     { key: SECRET_KEY, value: key },

@@ -18,15 +18,18 @@ test('the setup link saves the script URL and key', async () => {
   expect(await db.settings.get('syncKey')).toEqual({ key: 'syncKey', value: 's3cret' })
 })
 
-test.each(['', '#sync=', `#sync=${encodeURIComponent(SCRIPT_URL)}`, '#sync=http://x.com&key=k'])(
-  'a link without a valid setup saves nothing: %s',
-  async (hash) => {
-    const db = freshDb()
+test.each([
+  '',
+  '#sync=',
+  `#sync=${encodeURIComponent(SCRIPT_URL)}`,
+  '#sync=http://x.com&key=k',
+  '#sync=https://evil.example/exec&key=k',
+])('a link without a valid setup saves nothing: %s', async (hash) => {
+  const db = freshDb()
 
-    expect(await saveSetupFromHash(db, hash)).toBe(false)
-    expect(await db.settings.count()).toBe(0)
-  },
-)
+  expect(await saveSetupFromHash(db, hash)).toBe(false)
+  expect(await db.settings.count()).toBe(0)
+})
 
 const NOW = new Date('2026-10-15T02:00:00Z')
 const minutesLater = (minutes: number) => new Date(NOW.getTime() + minutes * 60_000)
