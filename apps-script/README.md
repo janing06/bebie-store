@@ -75,8 +75,10 @@ That's it.
 
 ## How it behaves
 
-- **Files:** one per day; later uploads that day replace that day's file. Files older than 30 days
-  are deleted every night.
+- **Files:** one per day; later uploads that day replace that day's file. Every night only the
+  newest 30 files are kept, so even a long break never deletes the last backups.
+- **Days without sales:** the phone only uploads when something changed, so a store closed for 2+
+  days also triggers the alert email. That's expected.
 - **Alert:** if nothing arrives for 2 days, you get an email at 11pm. Usually it just means the
   phone was offline; open the app with internet on.
 - **Restoring:** on the new phone, install the app, download the newest file from Drive, then

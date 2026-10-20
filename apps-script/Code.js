@@ -4,7 +4,7 @@
 const SECRET = 'PASTE-YOUR-SECRET-HERE'
 const FOLDER_NAME = "Bebie's Store backups"
 const TIME_ZONE = 'Asia/Manila'
-const KEEP_DAYS = 30
+const KEEP_FILES = 30 // one per day
 const ALERT_AFTER_DAYS = 2
 const DAY_MS = 24 * 60 * 60 * 1000
 
@@ -31,10 +31,11 @@ function doPost(e) {
   lock.waitLock(30000)
   try {
     const folder = backupFolder()
-    const older = folder.getFilesByName(name)
-    // The new file goes in before the old one is trashed, so a crash never leaves zero copies.
+    // Listed before the new file exists, so only older copies get trashed. The new file goes in
+    // before they are trashed, so a crash never leaves zero copies.
+    const older = list(folder.getFilesByName(name))
     folder.createFile(name, json, 'application/json')
-    while (older.hasNext()) older.next().setTrashed(true)
+    for (const file of older) file.setTrashed(true)
     PropertiesService.getScriptProperties().setProperty('lastReceivedAt', new Date().toISOString())
   } finally {
     lock.releaseLock()
@@ -42,13 +43,13 @@ function doPost(e) {
   return reply({ ok: true })
 }
 
-/** Every night: trash old backups, and email the owner if the phone stopped sending. */
+/** Every night: trash all but the newest backups, and email the owner if the phone stopped. */
 function nightly() {
-  const files = backupFolder().getFiles()
-  while (files.hasNext()) {
-    const file = files.next()
-    if (Date.now() - file.getLastUpdated().getTime() > KEEP_DAYS * DAY_MS) file.setTrashed(true)
-  }
+  // Newest first by name (bebie-store-YYYY-MM-DD). Counting files, not days, so a long silence
+  // (a broken phone) can never empty the folder.
+  const files = list(backupFolder().getFiles())
+  files.sort((a, b) => b.getName().localeCompare(a.getName()))
+  for (const file of files.slice(KEEP_FILES)) file.setTrashed(true)
 
   const last = PropertiesService.getScriptProperties().getProperty('lastReceivedAt')
   if (Date.now() - Date.parse(last) > ALERT_AFTER_DAYS * DAY_MS) {
@@ -63,6 +64,12 @@ function nightly() {
 function backupFolder() {
   const found = DriveApp.getFoldersByName(FOLDER_NAME)
   return found.hasNext() ? found.next() : DriveApp.createFolder(FOLDER_NAME)
+}
+
+function list(iterator) {
+  const items = []
+  while (iterator.hasNext()) items.push(iterator.next())
+  return items
 }
 
 function reply(value) {
