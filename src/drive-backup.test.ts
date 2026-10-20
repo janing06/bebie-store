@@ -1,5 +1,5 @@
 import { afterEach, expect, test, vi } from 'vitest'
-import { lastBackupAt } from './data/backup'
+import { exportBackup, lastBackupAt, restoreBackup } from './data/backup'
 import { saveAllProductsSort } from './data/preferences'
 import { addProduct } from './data/products'
 import type { StoreDb } from './db'
@@ -206,4 +206,32 @@ test('a big store uploads', async () => {
 
   expect(await backUpToDriveIfDue(db, NOW, send)).toBe('uploaded')
   expect((await sentBackup(send)).backup.tables.stockMoves).toHaveLength(10_001) // plus the starting stock
+})
+
+async function momsBackup() {
+  const mom = freshDb()
+  await addProduct(mom, sampleProduct({ name: "Mom's Coke" }))
+  await saveSetupFromHash(mom, `${SETUP_HASH}&name=mom`)
+  await backUpToDriveIfDue(mom, NOW, fakeScript())
+  return exportBackup(mom, NOW)
+}
+
+test("restoring another phone's backup keeps this phone's own setup", async () => {
+  const jan = freshDb()
+  await saveSetupFromHash(jan, `${SETUP_HASH}&name=jan`)
+
+  await restoreBackup(jan, await momsBackup())
+
+  expect((await jan.products.toArray()).map((product) => product.name)).toEqual(["Mom's Coke"])
+  const send = fakeScript()
+  expect(await backUpToDriveIfDue(jan, minutesLater(1), send)).toBe('uploaded')
+  expect((await sentBackup(send)).name).toBe('jan')
+})
+
+test('restoring on a phone that was never set up takes the setup from the backup', async () => {
+  const newPhone = freshDb()
+
+  await restoreBackup(newPhone, await momsBackup())
+
+  expect(await newPhone.settings.get('syncName')).toEqual({ key: 'syncName', value: 'mom' })
 })
