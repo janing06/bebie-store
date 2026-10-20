@@ -221,10 +221,20 @@ function findDataProblem(tables: BackupTables): string | null {
   return null
 }
 
-/** Replaces everything on the phone with the backup. Call only with a parsed backup. */
+// This phone's own Drive backup setup (see src/drive-backup.ts). A backup from another phone
+// carries that phone's setup; restoring it must not make this phone upload as the other one.
+const PHONE_SETUP_KEYS = ['syncUrl', 'syncKey', 'syncName', 'driveBackupAt', 'driveBackupHash']
+
+/**
+ * Replaces everything on the phone with the backup. Call only with a parsed backup. A phone that
+ * is already set up for Drive backup keeps its own setup; a new phone takes the backup's.
+ */
 export async function restoreBackup(db: StoreDb, backup: BackupFile): Promise<void> {
   const { tables } = backup
   await db.transaction('rw', db.tables, async () => {
+    const ownSetup = (await db.settings.bulkGet(PHONE_SETUP_KEYS)).filter(
+      (row): row is Setting => row !== undefined,
+    )
     await Promise.all(db.tables.map((table) => table.clear()))
     await db.products.bulkAdd(tables.products)
     await db.sales.bulkAdd(tables.sales)
@@ -233,6 +243,10 @@ export async function restoreBackup(db: StoreDb, backup: BackupFile): Promise<vo
     await db.customers.bulkAdd(tables.customers)
     await db.payments.bulkAdd(tables.payments)
     await db.settings.bulkAdd(tables.settings)
+    if (ownSetup.some((row) => row.key === 'syncUrl')) {
+      await db.settings.bulkDelete(PHONE_SETUP_KEYS)
+      await db.settings.bulkPut(ownSetup)
+    }
   })
 }
 
